@@ -274,6 +274,11 @@ body {
     font-size: 1.2rem;
 }
 
+/* About Section */
+.about-section {
+    margin-top: 40px;
+}
+
 /* Contact Section */
 .contact-section {
     margin-top: 40px;
