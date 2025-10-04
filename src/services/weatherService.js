@@ -139,6 +139,11 @@ class WeatherService {
   // Get current weather from Open-Meteo as primary source
   async getOpenMeteoCurrentWeather(lat, lon) {
     try {
+      // Validate coordinates
+      if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        throw new Error(`Invalid coordinates: lat=${lat}, lon=${lon}`);
+      }
+      
       const url = `${this.forecastUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto`;
       console.log('Fetching Open-Meteo current weather:', url);
       
@@ -1025,8 +1030,14 @@ class WeatherService {
       // Multiple NASA APIs for comprehensive Earth observation data
       const [powerData, apodData, neoData] = await Promise.allSettled([
         this.getEnhancedNASAData(lat, lon, startDate, endDate),
-        this.getNASAAstronomyPicture(),
-        this.getNASANearEarthObjects()
+        this.getNASAAstronomyPicture().catch(err => {
+          console.log('NASA APOD rate limited, skipping...');
+          return null;
+        }),
+        this.getNASANearEarthObjects().catch(err => {
+          console.log('NASA NEO rate limited, skipping...');
+          return null;
+        })
       ]);
 
       return {

@@ -137,9 +137,9 @@ export function WeatherProvider({ children }) {
   const fetchWeatherData = useCallback(async (location, date) => {
     if (!location) return;
     
-    console.log('=== WeatherContext fetchWeatherData DEBUG ===');
-    console.log('location:', location);
-    console.log('date:', date);
+    // console.log('=== WeatherContext fetchWeatherData DEBUG ===');
+    // console.log('location:', location);
+    // console.log('date:', date);
     
     dispatch({ type: 'SET_LOADING', payload: true });
     
