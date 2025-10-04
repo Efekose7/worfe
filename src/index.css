@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-deep-space via-nasa-blue to-deep-space text-star-white;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg shadow-xl;
+  }
+  
+  .btn-primary {
+    @apply bg-nasa-blue hover:bg-nasa-blue/90 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 hover:shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2 rounded-lg border border-white/20 transition-all duration-200;
+  }
+  
+  .input-field {
+    @apply bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-earth-cyan focus:border-transparent;
+  }
+  
+  .select-field {
+    @apply bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-earth-cyan focus:border-transparent appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+  
+  .select-field option {
+    @apply bg-deep-space text-white;
+    color: white !important;
+    background-color: #0a0a0a !important;
+  }
+  
+  .probability-card {
+    @apply card p-4 hover:bg-white/15 transition-all duration-200;
+  }
+  
+  .loading-skeleton {
+    @apply animate-pulse bg-white/20 rounded;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-earth-cyan to-nebula-purple bg-clip-text text-transparent;
+  }
+  
+  .shadow-nasa {
+    box-shadow: 0 10px 25px -5px rgba(11, 61, 145, 0.3), 0 10px 10px -5px rgba(11, 61, 145, 0.1);
+  }
+}
