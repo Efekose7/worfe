@@ -1,6 +1,6 @@
 # Worfe - Weather Likelihood Dashboard
 
-🌐 **Live Site**: [worfe.vip](https://worfe.vip)
+🌐 **Live Site**: [worfe.vip](https://worfe.vip) - Cache cleared
 
 ![Worfe Weather Dashboard](https://img.shields.io/badge/Worfe-Weather%20Dashboard-blue?style=for-the-badge&logo=weather)
 ![React](https://img.shields.io/badge/React-18.2.0-blue?style=for-the-badge&logo=react)
