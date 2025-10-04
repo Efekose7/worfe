@@ -79,8 +79,9 @@ const Controls = () => {
               type="date"
               value={selectedDate}
               onChange={(e) => setDate(e.target.value)}
-              className="input-field w-full"
+              className="input-field w-full max-w-full"
               min={new Date().toISOString().split('T')[0]}
+              style={{ minWidth: '200px' }}
             />
           </div>
           

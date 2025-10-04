@@ -14,10 +14,10 @@ function App() {
         <div className="min-h-screen bg-gradient-to-br from-deep-space via-nasa-blue to-deep-space">
           <Header />
           
-          <main className="container mx-auto px-4 py-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <main className="container mx-auto px-2 sm:px-4 py-6 max-w-full overflow-x-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
               {/* Left Column - Map and Controls */}
-              <div className="lg:col-span-1 space-y-6">
+              <div className="lg:col-span-1 space-y-4 lg:space-y-6">
                 <div className="card p-4">
                   <MapComponent />
                 </div>
