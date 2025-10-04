@@ -29,10 +29,14 @@ class WeatherService {
         }
         
         if (response.status === 429) {
-          const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
-          console.log(`Rate limited, waiting ${Math.round(delay/1000)}s (attempt ${attempt + 1}/${maxRetries})`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
+          if (attempt < maxRetries - 1) {
+            const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
+            console.log(`Rate limited, waiting ${Math.round(delay/1000)}s (attempt ${attempt + 1}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          } else {
+            throw new Error(`Rate limit exceeded after ${maxRetries} attempts: ${response.status}`);
+          }
         }
         
         throw new Error(`API failed: ${response.status}`);
@@ -45,6 +49,7 @@ class WeatherService {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
+    throw new Error(`All ${maxRetries} attempts failed`);
   }
 
   // Get current weather data - Open-Meteo primary, NASA for Global Award compliance
