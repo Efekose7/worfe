@@ -266,14 +266,14 @@ const WeatherCharts = () => {
           )}
 
           {activeChart === 'distribution' && (
-            <div className="space-y-6">
+            <div className="space-y-6 relative">
               {boxPlotData.map((dataset, index) => (
-                <div key={index} className="space-y-2">
+                <div key={index} className="space-y-2 relative z-10">
                   <h4 className="text-white font-medium">{dataset.name}</h4>
-                  <div className="h-16 bg-white/5 rounded-lg p-4 flex items-center">
-                    <div className="flex-1">
+                  <div className="h-20 bg-white/5 rounded-lg p-4 flex items-center relative">
+                    <div className="flex-1 relative z-10">
                       <div className="text-xs text-white/60 mb-1">Distribution</div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <div className="text-sm text-white/80">
                           Min: {Math.min(...dataset.data).toFixed(1)}
                         </div>
@@ -293,7 +293,7 @@ const WeatherCharts = () => {
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-6 p-4 bg-white/5 rounded-lg">
+      <div className="mt-6 p-4 bg-white/5 rounded-lg relative z-20">
         <h3 className="font-semibold text-white mb-3">Chart Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="space-y-1">

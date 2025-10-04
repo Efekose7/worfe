@@ -41,6 +41,22 @@
     }
   }
   
+  /* Chart and distribution fixes */
+  .chart-container {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .distribution-item {
+    position: relative;
+    z-index: 10;
+  }
+  
+  .chart-summary {
+    position: relative;
+    z-index: 20;
+  }
+  
   .select-field {
     @apply bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-earth-cyan focus:border-transparent appearance-none cursor-pointer;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
