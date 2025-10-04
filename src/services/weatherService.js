@@ -274,9 +274,15 @@ class WeatherService {
             // Add delay to prevent rate limiting
             await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const response = await this.fetchWithRetry(url, 3, 3000);
-      if (!response.ok) {
-        throw new Error(`Open-Meteo API failed: ${response.status}`);
+      let response;
+      try {
+        response = await this.fetchWithRetry(url, 3, 3000);
+        if (!response.ok) {
+          throw new Error(`Open-Meteo API failed: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Error fetching Open-Meteo historical weather:', error);
+        throw error;
       }
       
       const data = await response.json();
