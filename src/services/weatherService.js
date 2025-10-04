@@ -13,6 +13,38 @@ class WeatherService {
     this.nasaGPMUrl = 'https://gpm.nasa.gov';
     this.nasaNeoUrl = 'https://api.nasa.gov/neo/rest/v1/feed';
     this.nasaApodUrl = 'https://api.nasa.gov/planetary/apod';
+    
+    // Rate limiting protection
+    this.requestQueue = [];
+    this.isProcessingQueue = false;
+  }
+
+  // Smart retry mechanism with exponential backoff
+  async fetchWithRetry(url, maxRetries = 3, baseDelay = 2000) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          return response;
+        }
+        
+        if (response.status === 429) {
+          const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
+          console.log(`Rate limited, waiting ${Math.round(delay/1000)}s (attempt ${attempt + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        throw new Error(`API failed: ${response.status}`);
+      } catch (error) {
+        if (attempt === maxRetries - 1) {
+          throw error;
+        }
+        const delay = baseDelay * Math.pow(2, attempt);
+        console.log(`Request failed, retrying in ${Math.round(delay/1000)}s (attempt ${attempt + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
   }
 
   // Get current weather data - Open-Meteo primary, NASA for Global Award compliance
@@ -147,7 +179,7 @@ class WeatherService {
       const url = `${this.forecastUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto`;
       console.log('Fetching Open-Meteo current weather:', url);
       
-      const response = await fetch(url);
+      const response = await this.fetchWithRetry(url, 2, 1000);
       if (!response.ok) {
         throw new Error(`Open-Meteo API failed: ${response.status}`);
       }
@@ -234,28 +266,11 @@ class WeatherService {
       
             console.log('Fetching Open-Meteo historical data:', url);
       
-            // Add longer delay to prevent rate limiting
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            // Add delay to prevent rate limiting
+            await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const response = await fetch(url);
+      const response = await this.fetchWithRetry(url, 3, 3000);
       if (!response.ok) {
-        if (response.status === 429) {
-          console.log('Open-Meteo rate limit hit, waiting 15 seconds...');
-          await new Promise(resolve => setTimeout(resolve, 15000));
-          const retryResponse = await fetch(url);
-          if (!retryResponse.ok) {
-            console.log('Open-Meteo still rate limited, waiting 30 more seconds...');
-            await new Promise(resolve => setTimeout(resolve, 30000));
-            const finalResponse = await fetch(url);
-            if (!finalResponse.ok) {
-              throw new Error(`Open-Meteo rate limit exceeded after multiple retries: ${finalResponse.status}`);
-            }
-            const finalData = await finalResponse.json();
-            return this.processHistoricalData([finalData], targetDate);
-          }
-          const retryData = await retryResponse.json();
-          return this.processHistoricalData([retryData], targetDate);
-        }
         throw new Error(`Open-Meteo API failed: ${response.status}`);
       }
       
