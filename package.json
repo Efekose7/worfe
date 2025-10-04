@@ -1,6 +1,6 @@
 {
   "name": "worfe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Worfe - Historical Weather Analysis Dashboard",
   "private": true,
   "dependencies": {
