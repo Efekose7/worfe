@@ -3,6 +3,7 @@ import { useWeather } from '../context/WeatherContext';
 import ProbabilityCards from './ProbabilityCards';
 import WeatherCharts from './WeatherCharts';
 import LocationInfo from './LocationInfo';
+import DataProvenance from './DataProvenance';
 import { AlertCircle } from 'lucide-react';
 
 const Dashboard = () => {
@@ -98,35 +99,8 @@ const Dashboard = () => {
       {/* Weather Charts */}
       <WeatherCharts />
 
-      {/* Data Attribution */}
-      <div className="card p-4">
-        <div className="text-center">
-          <h3 className="font-semibold text-white mb-2">Data Sources & Attribution</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-white/70">
-            <div>
-              <strong className="text-earth-cyan">Weather Data:</strong>
-              <br />
-              Open-Meteo Historical Weather API
-              <br />
-              <a href="https://open-meteo.com" className="text-earth-cyan hover:underline">
-                open-meteo.com
-              </a>
-            </div>
-            <div>
-              <strong className="text-earth-cyan">NASA Data:</strong>
-              <br />
-              Complementary Earth Science datasets
-              <br />
-              <a href="https://disc.gsfc.nasa.gov" className="text-earth-cyan hover:underline">
-                GES DISC
-              </a>
-            </div>
-          </div>
-          <div className="mt-3 pt-3 border-t border-white/20 text-xs text-white/60">
-            Analysis based on {probabilities.totalDays} days of historical data from {probabilities.dateRange.start} to {probabilities.dateRange.end}
-          </div>
-        </div>
-      </div>
+      {/* Data Provenance & Sources */}
+      <DataProvenance />
     </div>
   );
 };
