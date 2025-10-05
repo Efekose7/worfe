@@ -844,7 +844,18 @@ class WeatherService {
   // Advanced Statistical Analysis for NASA Space Apps Challenge
   calculateAdvancedStatistics(historicalData, eventDate, eventType) {
     if (!historicalData || !historicalData.rawData || historicalData.rawData.length === 0) {
-      return null;
+      console.log('No historical data available for statistical analysis');
+      return {
+        temperature: null,
+        precipitation: null,
+        wind: null,
+        patterns: null,
+        confidence: null,
+        visualization: null,
+        reliability: 'low',
+        sampleSize: 0,
+        dateRange: null
+      };
     }
 
     const data = historicalData.rawData;

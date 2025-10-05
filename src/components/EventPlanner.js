@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, MapPin, AlertTriangle, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
 import StatisticalAnalysis from './StatisticalAnalysis';
+import { weatherService } from '../services/weatherService';
 
 // Event types and critical factors
 const eventTypes = {
@@ -161,14 +162,20 @@ const EventPlanner = () => {
   };
 
   const handleStatisticalAnalysis = async () => {
-    if (!selectedLocation || !selectedDate || !selectedEvent) return;
+    if (!selectedLocation || !selectedDate || !selectedEvent) {
+      console.log('Missing required data:', { selectedLocation, selectedDate, selectedEvent });
+      return;
+    }
     
     setShowStatisticalAnalysis(true);
     setIsAnalyzing(true);
     
     try {
-      // Import weatherService dynamically to avoid circular imports
-      const { weatherService } = await import('../services/weatherService');
+      console.log('Starting statistical analysis...', {
+        location: selectedLocation,
+        date: selectedDate,
+        event: selectedEvent
+      });
       
       // Get historical data for statistical analysis
       const historicalData = await weatherService.getHistoricalWeather(
@@ -179,6 +186,8 @@ const EventPlanner = () => {
         7   // 7-day window
       );
       
+      console.log('Historical data received:', historicalData);
+      
       // Calculate advanced statistics
       const stats = weatherService.calculateAdvancedStatistics(
         historicalData,
@@ -186,9 +195,11 @@ const EventPlanner = () => {
         selectedEvent
       );
       
+      console.log('Statistical analysis completed:', stats);
       setStatisticalData(stats);
     } catch (error) {
       console.error('Error calculating statistical analysis:', error);
+      setStatisticalData(null);
     } finally {
       setIsAnalyzing(false);
     }
@@ -392,6 +403,7 @@ const EventPlanner = () => {
                   <StatisticalAnalysis 
                     statisticalData={statisticalData}
                     eventType={selectedEvent}
+                    isLoading={isAnalyzing}
                   />
                 </div>
               )}
