@@ -861,7 +861,7 @@ class WeatherService {
     // Calculate comprehensive statistical analysis
     const stats = this.calculateComprehensiveStatistics(historicalData, eventDate, eventType);
     return stats;
-  },
+  }
 
   // Comprehensive Statistical Analysis with Scientific Methodology
   calculateComprehensiveStatistics(historicalData, eventDate, eventType) {
