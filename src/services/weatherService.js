@@ -3422,7 +3422,7 @@ class WeatherService {
     const csvData = [];
     
     // Header
-    csvData.push('Date,Location,Temperature (C),Precipitation (mm),Wind Speed (km/h),Humidity (%),Risk Level,Probability (%)');
+    csvData.push('Date,Location,Temperature (C),Precipitation (mm),Wind Speed (km/h),Humidity (%),Data Type');
     
     // Add current weather data
     if (weatherData && weatherData.current) {
@@ -3438,22 +3438,51 @@ class WeatherService {
         precip.toFixed(1),
         wind.toFixed(1),
         humidity.toFixed(1),
-        'Current',
-        '100'
+        'Current Weather'
       ].join(','));
     }
     
-    // Add probability data
+    // Add historical data sample (last 10 days)
+    if (probabilities && probabilities.historicalData) {
+      const historicalData = probabilities.historicalData;
+      const dataKeys = Object.keys(historicalData);
+      
+      if (dataKeys.length > 0) {
+        // Get the first available parameter to extract dates
+        const firstParam = dataKeys[0];
+        const dates = Object.keys(historicalData[firstParam] || {});
+        
+        // Show last 10 days of historical data
+        const recentDates = dates.slice(-10);
+        
+        recentDates.forEach(date => {
+          const temp = historicalData.T2M?.[date] || historicalData.temperature?.[date] || 'N/A';
+          const precip = historicalData.PRECTOT?.[date] || historicalData.precipitation?.[date] || 'N/A';
+          const wind = historicalData.WS2M?.[date] || historicalData.windSpeed?.[date] || 'N/A';
+          const humidity = historicalData.RH2M?.[date] || historicalData.humidity?.[date] || 'N/A';
+          
+          csvData.push([
+            date,
+            `"${location.name}"`,
+            typeof temp === 'number' ? temp.toFixed(1) : temp,
+            typeof precip === 'number' ? precip.toFixed(1) : precip,
+            typeof wind === 'number' ? wind.toFixed(1) : wind,
+            typeof humidity === 'number' ? humidity.toFixed(1) : humidity,
+            'Historical Data'
+          ].join(','));
+        });
+      }
+    }
+    
+    // Add probability summary
+    csvData.push('');
+    csvData.push('PROBABILITY ANALYSIS');
+    csvData.push('Risk Type,Probability (%)');
+    
     if (probabilities && probabilities.probabilities) {
       Object.entries(probabilities.probabilities).forEach(([key, value]) => {
         const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
         csvData.push([
-          new Date().toISOString().split('T')[0],
-          `"${location.name}"`,
-          'N/A',
-          'N/A',
-          'N/A',
-          'N/A',
           key,
           numValue.toFixed(1)
         ].join(','));
