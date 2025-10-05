@@ -43,11 +43,12 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
     // NASA POWER verisi yapısını detaylı kontrol et
     console.log('NASA data structure analysis:');
     console.log('- nasaData.parameters:', nasaData.parameters);
+    console.log('- nasaData.nasa_parameters:', nasaData.nasa_parameters);
     console.log('- nasaData.rawData:', nasaData.rawData);
     console.log('- nasaData.data:', nasaData.data);
     console.log('- nasaData.T2M:', nasaData.T2M);
     
-    // Farklı yapıları dene
+    // Farklı yapıları dene - nasa_parameters'ı da kontrol et
     let t2mData = {};
     if (parameters.T2M) {
       t2mData = parameters.T2M;
@@ -55,11 +56,15 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
     } else if (nasaData.T2M) {
       t2mData = nasaData.T2M;
       console.log('Found T2M in nasaData');
+    } else if (nasaData.nasa_parameters && nasaData.nasa_parameters.T2M) {
+      t2mData = nasaData.nasa_parameters.T2M;
+      console.log('Found T2M in nasaData.nasa_parameters');
     } else if (nasaData.rawData && nasaData.rawData.T2M) {
       t2mData = nasaData.rawData.T2M;
       console.log('Found T2M in nasaData.rawData');
     } else {
       console.log('T2M not found, trying alternative structure...');
+      console.log('nasa_parameters keys:', nasaData.nasa_parameters ? Object.keys(nasaData.nasa_parameters) : 'undefined');
       console.log('Full nasaData structure:', JSON.stringify(nasaData, null, 2));
     }
     
@@ -73,7 +78,7 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
       })
       .map(([date, value]) => {
         const dateObj = new Date(date);
-        // Diğer parametreleri de aynı şekilde bul
+        // Diğer parametreleri de aynı şekilde bul - nasa_parameters'ı da kontrol et
         let precipitation = 0;
         let windSpeed = 0;
         let humidity = 0;
@@ -82,18 +87,24 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
           precipitation = parameters.PRECTOTCORR[date] || 0;
         } else if (nasaData.PRECTOTCORR) {
           precipitation = nasaData.PRECTOTCORR[date] || 0;
+        } else if (nasaData.nasa_parameters && nasaData.nasa_parameters.PRECTOTCORR) {
+          precipitation = nasaData.nasa_parameters.PRECTOTCORR[date] || 0;
         }
         
         if (parameters.WS2M) {
           windSpeed = (parameters.WS2M[date] || 0) * 3.6; // m/s to km/h
         } else if (nasaData.WS2M) {
           windSpeed = (nasaData.WS2M[date] || 0) * 3.6;
+        } else if (nasaData.nasa_parameters && nasaData.nasa_parameters.WS2M) {
+          windSpeed = (nasaData.nasa_parameters.WS2M[date] || 0) * 3.6;
         }
         
         if (parameters.RH2M) {
           humidity = parameters.RH2M[date] || 0;
         } else if (nasaData.RH2M) {
           humidity = nasaData.RH2M[date] || 0;
+        } else if (nasaData.nasa_parameters && nasaData.nasa_parameters.RH2M) {
+          humidity = nasaData.nasa_parameters.RH2M[date] || 0;
         }
         
         return {
