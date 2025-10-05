@@ -30,7 +30,6 @@ const StatisticalAnalysis = ({ statisticalData, eventType, isLoading }) => {
 
   const { temperature, precipitation, wind, patterns, confidence, visualization } = statisticalData;
 
-  // Check if we have valid data
   if (!temperature && !precipitation && !wind) {
     return (
       <div className="card p-6">

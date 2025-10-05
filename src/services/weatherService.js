@@ -1,13 +1,10 @@
 /* eslint-disable no-unused-vars, no-dupe-class-members */
-// Weather service for NASA and Open-Meteo API integration
 class WeatherService {
   constructor() {
-    // Open-Meteo APIs (backup data source)
     this.baseUrl = 'https://archive-api.open-meteo.com/v1/archive';
     this.forecastUrl = 'https://api.open-meteo.com/v1/forecast';
     this.geocodingUrl = 'https://geocoding-api.open-meteo.com/v1/search';
     
-    // NASA APIs (primary data source for Global Award)
     this.nasaPowerUrl = 'https://power.larc.nasa.gov/api/temporal/daily/point';
     this.nasaGESDISCUrl = 'https://disc.gsfc.nasa.gov';
     this.nasaEarthdataUrl = 'https://earthdata.nasa.gov';
@@ -16,14 +13,11 @@ class WeatherService {
     this.nasaApodUrl = 'https://api.nasa.gov/planetary/apod';
   }
 
-  // Get current weather data - Open-Meteo primary, NASA for Global Award compliance
   async getCurrentWeather(lat, lon) {
     try {
-      // Get Open-Meteo data as primary source
       console.log('Fetching Open-Meteo current weather...');
       const openMeteoData = await this.getOpenMeteoCurrentWeather(lat, lon);
       
-      // Try NASA POWER for Global Award compliance (secondary)
       console.log('Fetching NASA POWER for Global Award compliance...');
       let nasaData = null;
       try {
@@ -35,7 +29,6 @@ class WeatherService {
         console.log('NASA POWER failed, but Open-Meteo data available:', nasaError.message);
       }
       
-      // Return Open-Meteo data with NASA compliance info
       const result = {
         ...openMeteoData,
         data_source: 'Open-Meteo (Primary) + NASA POWER (Global Award)',
@@ -53,7 +46,6 @@ class WeatherService {
     }
   }
 
-  // Process NASA POWER API current weather data
   processNASACurrentWeather(nasaData) {
     if (!nasaData || !nasaData.properties || !nasaData.properties.parameter) {
       console.log('Invalid NASA POWER data format, falling back to Open-Meteo');
@@ -62,7 +54,6 @@ class WeatherService {
 
     const params = nasaData.properties.parameter;
 
-    // Get the first available date's data
     const getFirstValue = (param) => {
       if (!param) return null;
       const dates = Object.keys(param);
@@ -70,7 +61,6 @@ class WeatherService {
       const firstDate = dates[0];
       const value = param[firstDate]?.value;
       
-      // NASA POWER uses -999 for missing data
       if (value === -999 || value === null || value === undefined) {
         return null;
       }
@@ -82,7 +72,6 @@ class WeatherService {
     const precipitation = getFirstValue(params.PRECTOT);
     const windSpeed = getFirstValue(params.WS2M);
 
-    // Check if we have valid NASA data
     const hasValidData = temperature !== null || humidity !== null || precipitation !== null || windSpeed !== null;
     
     if (!hasValidData) {
@@ -104,9 +93,7 @@ class WeatherService {
     };
   }
 
-  // Get current date in YYYYMMDD format
   getCurrentDate() {
-    // Use yesterday's date for NASA POWER API (it doesn't have future data)
     const now = new Date();
     now.setDate(now.getDate() - 1); // Yesterday
     const dateStr = now.getFullYear().toString() + 
@@ -116,7 +103,6 @@ class WeatherService {
     return dateStr;
   }
 
-  // Get NASA POWER data for Global Award compliance (secondary)
   async getNASACurrentWeatherForCompliance(lat, lon) {
     try {
       const coreParams = 'T2M,T2M_MAX,T2M_MIN,PRECTOT,WS2M,RH2M';
@@ -137,7 +123,6 @@ class WeatherService {
     }
   }
 
-  // Get current weather from Open-Meteo as primary source
   async getOpenMeteoCurrentWeather(lat, lon) {
     try {
       const url = `${this.forecastUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto`;
@@ -151,7 +136,6 @@ class WeatherService {
       const openMeteoData = await response.json();
       console.log('Open-Meteo fallback data:', openMeteoData);
       
-      // Process Open-Meteo data correctly
       const processedData = {
         current: {
           temperature_2m: openMeteoData.current?.temperature_2m || 0,
@@ -171,7 +155,6 @@ class WeatherService {
     }
   }
 
-  // Get NASA POWER historical data for Global Award compliance (primary)
   async getNASAHistoricalWeatherForCompliance(lat, lon, targetDate, yearsOfData = 20) {
     try {
       const currentYear = new Date().getFullYear();
@@ -206,7 +189,6 @@ class WeatherService {
     }
   }
 
-  // Get historical weather from Open-Meteo as fallback source
   async getOpenMeteoHistoricalWeather(lat, lon, targetDate, yearsOfData = 20) {
     try {
       const currentYear = new Date().getFullYear();
@@ -230,7 +212,6 @@ class WeatherService {
       
             console.log('Fetching Open-Meteo historical data:', url);
       
-            // Add longer delay to prevent rate limiting
             await new Promise(resolve => setTimeout(resolve, 5000));
       
       const response = await fetch(url);
@@ -288,7 +269,6 @@ class WeatherService {
     }
   }
 
-  // Get historical weather data - Open-Meteo primary, NASA for Global Award compliance
   async getHistoricalWeather(lat, lon, targetDate, yearsOfData = 20, dateWindow = 7) {
     try {
       console.log(`=== Historical Weather Request ===`);
@@ -296,11 +276,9 @@ class WeatherService {
       console.log(`Date Window: ±${dateWindow} days`);
       console.log(`Target Date: ${targetDate}`);
       
-      // Get Open-Meteo data as primary source
       console.log('Fetching Open-Meteo historical weather...');
       const openMeteoData = await this.getOpenMeteoHistoricalWeather(lat, lon, targetDate, yearsOfData);
       
-      // Try NASA POWER for Global Award compliance (secondary)
       console.log('Fetching NASA POWER for Global Award compliance...');
       let nasaData = null;
       try {
@@ -312,7 +290,6 @@ class WeatherService {
         console.log('NASA POWER historical failed, but Open-Meteo data available:', nasaError.message);
       }
       
-      // Return Open-Meteo data with NASA compliance info
       const result = {
         ...openMeteoData,
         data_source: 'Open-Meteo (Primary) + NASA POWER (Global Award)',
@@ -345,7 +322,6 @@ class WeatherService {
     }
   }
 
-  // Process NASA POWER API historical data
   processNASAHistoricalData(nasaData, targetDate) {
     console.log('=== NASA POWER Historical Data Processing ===');
     console.log('NASA POWER API Response:', nasaData);
@@ -375,7 +351,6 @@ class WeatherService {
     const params = nasaData.properties.parameter;
     console.log('NASA POWER parameters loaded:', Object.keys(params));
     
-    // Debug each parameter
     Object.keys(params).forEach(paramKey => {
       const param = params[paramKey];
       if (param && typeof param === 'object') {
@@ -389,7 +364,6 @@ class WeatherService {
       }
     });
 
-    // Get all available dates from any parameter
     const getAvailableDates = () => {
       const allDates = new Set();
       Object.values(params).forEach(param => {
@@ -416,7 +390,6 @@ class WeatherService {
         }
         const value = param[date];
         
-        // NASA POWER uses -999 for missing data
         if (value === -999 || value === null || value === undefined) {
           return null;
         }
@@ -437,12 +410,10 @@ class WeatherService {
         pressure: 0 // Not available in basic NASA POWER
       };
       
-      // Calculate average temperature if both max and min are available
       if (dayData.temperature.max !== null && dayData.temperature.min !== null) {
         dayData.temperature.avg = (dayData.temperature.max + dayData.temperature.min) / 2;
       }
       
-      // Check if we have any valid data for this day
       const hasValidData = dayData.temperature.max !== null || 
                           dayData.temperature.min !== null || 
                           dayData.temperature.avg !== null ||
@@ -457,7 +428,6 @@ class WeatherService {
           processedData.years.push(year);
         }
         
-        // Add to statistics arrays (only if data is valid)
         if (dayData.temperature.max !== null && dayData.temperature.max !== undefined) {
           processedData.statistics.temperature.max.push(dayData.temperature.max);
         }
@@ -499,7 +469,6 @@ class WeatherService {
       }
     });
     
-    // Check if we have enough valid data
     if (processedData.rawData.length === 0) {
       console.log('No valid NASA POWER data found, falling back to Open-Meteo');
       throw new Error('No valid NASA POWER data available');
@@ -508,7 +477,6 @@ class WeatherService {
     return processedData;
   }
 
-  // Process historical data into a structured format
   processHistoricalData(dataArray, targetDate) {
     const processedData = {
       targetDate,
@@ -527,18 +495,15 @@ class WeatherService {
       if (yearData && yearData.daily) {
         const dailyData = yearData.daily;
         
-        // Check if we have valid data arrays
         if (!dailyData.time || !Array.isArray(dailyData.time)) {
           console.warn('No time data available');
           return;
         }
         
-        // Process each day's data
         for (let i = 0; i < dailyData.time.length; i++) {
           const dateObj = new Date(dailyData.time[i]);
           const year = dateObj.getFullYear();
           
-          // Safely access array elements with fallbacks
           const dayData = {
             year,
             date: dailyData.time[i],
@@ -553,7 +518,6 @@ class WeatherService {
             pressure: 0 // Not available in current API call
           };
           
-          // Calculate average temperature if both max and min are available
           if (dayData.temperature.max !== null && dayData.temperature.min !== null) {
             dayData.temperature.avg = (dayData.temperature.max + dayData.temperature.min) / 2;
           }
@@ -563,7 +527,6 @@ class WeatherService {
             processedData.years.push(year);
           }
           
-          // Add to statistics arrays (only if data is valid)
           if (dayData.temperature.max !== null) {
             processedData.statistics.temperature.max.push(dayData.temperature.max);
           }
@@ -581,11 +544,9 @@ class WeatherService {
       }
     });
 
-    // Data processed successfully
     return processedData;
   }
 
-  // Calculate weather probabilities based on historical data
   calculateProbabilities(historicalData, thresholds, settings) {
     if (!historicalData || !historicalData.rawData) {
       return null;
@@ -596,13 +557,11 @@ class WeatherService {
 
     if (totalDays === 0) return null;
 
-    // Safely extract temperature data
     const maxTemps = rawData.map(d => d.temperature.max).filter(temp => temp !== null);
     const minTemps = rawData.map(d => d.temperature.min).filter(temp => temp !== null);
     const windSpeeds = rawData.map(d => d.windSpeed).filter(speed => speed !== null);
     const precipitations = rawData.map(d => d.precipitation).filter(precip => precip !== null);
 
-    // Calculate probabilities for each condition
     const probabilities = {
       veryHot: this.calculateConditionProbability(
         maxTemps,
@@ -674,7 +633,6 @@ class WeatherService {
   calculateUncomfortableProbability(data, threshold) {
     let count = 0;
     data.forEach(day => {
-      // Calculate heat index
       const temp = day.temperature.avg;
       const humidity = day.humidity;
       
@@ -796,7 +754,6 @@ class WeatherService {
   }
 
   calculateConfidenceIntervals(data, probabilities) {
-    // Simplified confidence interval calculation
     const n = data.length;
     const z = 1.96; // 95% confidence interval
     
@@ -842,7 +799,6 @@ class WeatherService {
     return Math.sqrt(avgSquaredDiff);
   }
 
-  // Advanced Statistical Analysis for NASA Space Apps Challenge
   calculateAdvancedStatistics(historicalData, eventDate, eventType) {
     if (!historicalData || !historicalData.rawData || historicalData.rawData.length === 0) {
       console.log('No historical data available for statistical analysis');
@@ -859,18 +815,15 @@ class WeatherService {
       };
     }
 
-    // Calculate comprehensive statistical analysis
     const stats = this.calculateComprehensiveStatistics(historicalData, eventDate, eventType);
     return stats;
   }
 
-  // Comprehensive Statistical Analysis with Scientific Methodology
   calculateComprehensiveStatistics(historicalData, eventDate, eventType) {
     const rawData = historicalData.rawData;
     const eventMonth = eventDate.getMonth() + 1;
     const eventDay = eventDate.getDate();
     
-    // Filter data for same date over years
     const sameDateData = rawData.filter(d => 
       d.month === eventMonth && d.day === eventDay
     );
@@ -889,26 +842,20 @@ class WeatherService {
       };
     }
 
-    // Extract data arrays
     const temperatures = sameDateData.map(d => d.temperature);
     const precipitations = sameDateData.map(d => d.precipitation);
     const windSpeeds = sameDateData.map(d => d.windSpeed);
 
-    // Calculate detailed statistics
     const tempStats = this.calculateDetailedTemperatureStats(temperatures);
     const precipStats = this.calculatePrecipitationStats(precipitations);
     const windStats = this.calculateWindStats(windSpeeds);
     
-    // Historical pattern analysis
     const patterns = this.analyzeHistoricalPatterns(rawData, eventMonth, eventDay);
     
-    // Confidence intervals (95%)
     const confidence = this.calculateAdvancedConfidenceIntervals(tempStats, precipStats, windStats);
     
-    // Event-specific risk analysis
     const eventRisk = this.calculateEventSpecificRisk(sameDateData, eventType, eventDate);
     
-    // Visualization data preparation
     const visualization = this.prepareVisualizationData(temperatures, precipitations, windSpeeds, sameDateData);
     
     return {
@@ -928,7 +875,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Temperature Statistics
   calculateDetailedTemperatureStats(temperatures) {
     if (temperatures.length === 0) return null;
     
@@ -955,7 +901,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Precipitation Statistics
   calculatePrecipitationStats(precipitations) {
     if (precipitations.length === 0) return null;
     
@@ -974,7 +919,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Wind Statistics
   calculateWindStats(windSpeeds) {
     if (windSpeeds.length === 0) return null;
     
@@ -993,11 +937,9 @@ class WeatherService {
     };
   }
 
-  // Historical Pattern Analysis
   analyzeHistoricalPatterns(data, month, day) {
     const yearlyData = {};
     
-    // Group by year
     data.forEach(d => {
       if (d.month === month && d.day === day) {
         if (!yearlyData[d.year]) {
@@ -1007,7 +949,6 @@ class WeatherService {
       }
     });
     
-    // Calculate yearly trends
     const years = Object.keys(yearlyData).sort((a, b) => a - b);
     const tempTrends = years.map(year => {
       const yearData = yearlyData[year];
@@ -1019,7 +960,6 @@ class WeatherService {
       };
     });
     
-    // Linear regression for trends
     const tempTrend = this.calculateTrend(tempTrends.map(t => t.avgTemp));
     const precipTrend = this.calculateTrend(tempTrends.map(t => t.avgPrecip));
     const windTrend = this.calculateTrend(tempTrends.map(t => t.avgWind));
@@ -1039,7 +979,6 @@ class WeatherService {
     };
   }
 
-  // Calculate trend using linear regression
   calculateTrend(values) {
     if (values.length < 2) return { slope: 0, correlation: 0 };
     
@@ -1055,7 +994,6 @@ class WeatherService {
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
     const intercept = (sumY - slope * sumX) / n;
     
-    // Calculate correlation coefficient
     const meanX = sumX / n;
     const meanY = sumY / n;
     const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
@@ -1071,7 +1009,6 @@ class WeatherService {
     };
   }
 
-  // Get overall trend direction
   getTrendDirection(trends) {
     const tempDir = trends.temperature.direction;
     const precipDir = trends.precipitation.direction;
@@ -1090,7 +1027,6 @@ class WeatherService {
     }
   }
 
-  // Calculate 95% Confidence Intervals
   calculateAdvancedConfidenceIntervals(tempStats, precipStats, windStats) {
     const z95 = 1.96; // 95% confidence
     
@@ -1110,7 +1046,6 @@ class WeatherService {
     };
   }
 
-  // Prepare data for visualization
   prepareVisualizationData(temperatures, precipitations, windSpeeds, sameDateData) {
     return {
       histogram: this.createHistogramData(temperatures),
@@ -1120,7 +1055,6 @@ class WeatherService {
     };
   }
 
-  // Create histogram data
   createHistogramData(temperatures) {
     const min = Math.min(...temperatures);
     const max = Math.max(...temperatures);
@@ -1141,7 +1075,6 @@ class WeatherService {
     return bins;
   }
 
-  // Create box plot data
   createBoxPlotData(temperatures) {
     const sorted = [...temperatures].sort((a, b) => a - b);
     return {
@@ -1157,7 +1090,6 @@ class WeatherService {
     };
   }
 
-  // Create scatter plot data
   createScatterData(windSpeeds, precipitations) {
     return windSpeeds.map((wind, i) => ({
       windSpeed: wind,
@@ -1166,7 +1098,6 @@ class WeatherService {
     }));
   }
 
-  // Create time series data
   createTimeSeriesData(sameDateData) {
     return sameDateData.map(d => ({
       year: d.year,
@@ -1176,7 +1107,6 @@ class WeatherService {
     })).sort((a, b) => a.year - b.year);
   }
 
-  // Calculate correlation coefficient
   calculateCorrelation(x, y) {
     const n = x.length;
     const sumX = x.reduce((a, b) => a + b, 0);
@@ -1188,7 +1118,6 @@ class WeatherService {
     return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
   }
 
-  // Calculate percentile
   calculatePercentile(sorted, percentile) {
     const index = (percentile / 100) * (sorted.length - 1);
     const lower = Math.floor(index);
@@ -1199,7 +1128,6 @@ class WeatherService {
     return sorted[lower] * (1 - weight) + sorted[upper] * weight;
   }
 
-  // Find outliers using IQR method
   findOutliers(values, mean, stdDev) {
     const sorted = [...values].sort((a, b) => a - b);
     const q1 = this.calculatePercentile(sorted, 25);
@@ -1211,7 +1139,6 @@ class WeatherService {
     return values.filter(v => v < lowerBound || v > upperBound);
   }
 
-  // Calculate rain distribution
   calculateRainDistribution(precipitations) {
     const ranges = [
       { min: 0, max: 0.1, label: 'No Rain' },
@@ -1228,13 +1155,11 @@ class WeatherService {
     }));
   }
 
-  // PARADE-SPECIFIC ANALYSIS FOR NASA SPACE APPS CHALLENGE
   calculateParadeSpecificAnalysis(historicalData, eventDate, eventType) {
     const rawData = historicalData.rawData;
     const eventMonth = eventDate.getMonth() + 1;
     const eventDay = eventDate.getDate();
     
-    // Filter data for same date over years
     const sameDateData = rawData.filter(d => 
       d.month === eventMonth && d.day === eventDay
     );
@@ -1250,22 +1175,16 @@ class WeatherService {
       };
     }
 
-    // Hourly risk analysis (parades typically 10:00-16:00)
     const hourlyRisk = this.calculateHourlyParadeRisk(sameDateData);
     
-    // Crowd safety analysis
     const crowdSafetyScore = this.evaluateCrowdSafety(sameDateData);
     
-    // Visibility analysis
     const visibilityScore = this.calculateVisibilityScore(sameDateData);
     
-    // Equipment protection risk
     const equipmentRisk = this.assessEquipmentRisk(sameDateData);
     
-    // Traditional parade days analysis
     const traditionalParadeDays = this.analyzeTraditionalParadeDays(rawData, eventMonth);
     
-    // Parade-specific recommendations
     const paradeRecommendations = this.generateParadeRecommendations(
       hourlyRisk, crowdSafetyScore, visibilityScore, equipmentRisk
     );
@@ -1280,7 +1199,6 @@ class WeatherService {
     };
   }
 
-  // Calculate hourly risk for parade times (10:00-16:00)
   calculateHourlyParadeRisk(sameDateData) {
     const paradeHours = [10, 11, 12, 13, 14, 15, 16];
     const hourlyRisks = {};
@@ -1292,7 +1210,6 @@ class WeatherService {
         const avgPrecip = hourData.reduce((sum, d) => sum + d.precipitation, 0) / hourData.length;
         const avgWind = hourData.reduce((sum, d) => sum + d.windSpeed, 0) / hourData.length;
         
-        // Calculate risk score for this hour
         let riskScore = 0;
         if (avgPrecip > 0.5) riskScore += 40; // High rain risk
         if (avgWind > 25) riskScore += 30; // High wind risk
@@ -1311,7 +1228,6 @@ class WeatherService {
     return hourlyRisks;
   }
 
-  // Evaluate crowd safety for parade
   evaluateCrowdSafety(sameDateData) {
     const avgTemp = sameDateData.reduce((sum, d) => sum + d.temperature, 0) / sameDateData.length;
     const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
@@ -1319,16 +1235,13 @@ class WeatherService {
     
     let safetyScore = 100;
     
-    // Temperature safety (18-28°C ideal)
     if (avgTemp < 5 || avgTemp > 40) safetyScore -= 50;
     else if (avgTemp < 10 || avgTemp > 35) safetyScore -= 30;
     else if (avgTemp < 15 || avgTemp > 30) safetyScore -= 15;
     
-    // Humidity safety (30-70% ideal)
     if (avgHumidity > 90 || avgHumidity < 20) safetyScore -= 20;
     else if (avgHumidity > 80 || avgHumidity < 30) safetyScore -= 10;
     
-    // Wind safety (under 30 km/h ideal)
     if (avgWind > 50) safetyScore -= 40;
     else if (avgWind > 30) safetyScore -= 20;
     else if (avgWind > 20) safetyScore -= 10;
@@ -1344,7 +1257,6 @@ class WeatherService {
     };
   }
 
-  // Calculate visibility score
   calculateVisibilityScore(sameDateData) {
     const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
     const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
@@ -1352,16 +1264,13 @@ class WeatherService {
     
     let visibilityScore = 100;
     
-    // Humidity affects visibility
     if (avgHumidity > 90) visibilityScore -= 30;
     else if (avgHumidity > 80) visibilityScore -= 15;
     
-    // Precipitation affects visibility
     if (avgPrecip > 5) visibilityScore -= 40;
     else if (avgPrecip > 2) visibilityScore -= 20;
     else if (avgPrecip > 0.5) visibilityScore -= 10;
     
-    // Wind can improve visibility but too much is bad
     if (avgWind > 40) visibilityScore -= 20;
     else if (avgWind < 5) visibilityScore -= 10; // Stagnant air
     
@@ -1376,7 +1285,6 @@ class WeatherService {
     };
   }
 
-  // Assess equipment protection risk
   assessEquipmentRisk(sameDateData) {
     const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
     const avgWind = sameDateData.reduce((sum, d) => sum + d.windSpeed, 0) / sameDateData.length;
@@ -1385,7 +1293,6 @@ class WeatherService {
     
     let equipmentRisk = 0;
     
-    // Rain damage risk
     if (maxPrecip > 10) equipmentRisk += 50;
     else if (maxPrecip > 5) equipmentRisk += 30;
     else if (avgPrecip > 2) equipmentRisk += 15;
@@ -1396,17 +1303,14 @@ class WeatherService {
     };
   }
 
-  // Calculate equipment risk (duplicate function)
   calculateEquipmentRiskDuplicate(maxPrecip, avgPrecip, maxWind, avgWind) {
     let equipmentRisk = 0;
     
-    // Rain damage risk
     if (maxPrecip > 10) equipmentRisk += 50;
     else if (maxPrecip > 5) equipmentRisk += 30;
     else if (avgPrecip > 2) equipmentRisk += 20;
     else if (avgPrecip > 0.5) equipmentRisk += 10;
     
-    // Wind damage risk
     if (maxWind > 60) equipmentRisk += 40;
     else if (maxWind > 40) equipmentRisk += 25;
     else if (avgWind > 25) equipmentRisk += 15;
@@ -1425,7 +1329,6 @@ class WeatherService {
     };
   }
 
-  // Get equipment protection recommendations
   getEquipmentRecommendations(riskScore, avgPrecip, avgWind) {
     const recommendations = [];
     
@@ -1452,7 +1355,6 @@ class WeatherService {
     return recommendations;
   }
 
-  // Analyze traditional parade days
   analyzeTraditionalParadeDays(rawData, month) {
     const traditionalDays = {
       1: [{ name: "New Year's Day", day: 1 }],
@@ -1502,11 +1404,9 @@ class WeatherService {
     return analysis;
   }
 
-  // Generate parade-specific recommendations
   generateParadeRecommendations(hourlyRisk, crowdSafety, visibility, equipment) {
     const recommendations = [];
     
-    // Time recommendations
     if (hourlyRisk) {
       const bestHours = Object.entries(hourlyRisk)
         .filter(([hour, data]) => data.riskScore < 30)
@@ -1517,7 +1417,6 @@ class WeatherService {
       }
     }
     
-    // Crowd safety recommendations
     if (crowdSafety && crowdSafety.level !== 'Excellent') {
       if (crowdSafety.factors.temperature < 10) {
         recommendations.push('Provide heating stations for crowd');
@@ -1530,13 +1429,11 @@ class WeatherService {
       }
     }
     
-    // Visibility recommendations
     if (visibility && visibility.level !== 'Excellent') {
       recommendations.push('Use bright colors and high-visibility materials');
       recommendations.push('Consider indoor backup for key moments');
     }
     
-    // Equipment recommendations
     if (equipment && equipment.recommendations) {
       recommendations.push(...equipment.recommendations);
     }
@@ -1544,43 +1441,34 @@ class WeatherService {
     return recommendations;
   }
 
-  // Calculate comprehensive statistics (deleted function restored)
   calculateComprehensiveStatisticsDeleted(historicalData, eventDate, eventType) {
     const data = historicalData.rawData;
     const eventMonth = eventDate.getMonth() + 1;
     const eventDay = eventDate.getDate();
     
-    // Same date historical data (last 10 years)
     const sameDateData = data.filter(d => 
       d.month === eventMonth && d.day === eventDay
     );
 
-    // Temperature analysis
     const temperatures = sameDateData.map(d => d.temperature_2m);
     const tempStats = this.calculateDetailedTemperatureStats(temperatures);
     
-    // Precipitation analysis
     const precipitations = sameDateData.map(d => d.precipitation);
     const precipStats = this.calculatePrecipitationStats(precipitations);
     
-    // Wind analysis
     const windSpeeds = sameDateData.map(d => d.wind_speed_10m);
     const windStats = this.calculateWindStats(windSpeeds);
     
-    // Event-specific risk analysis
     const eventRiskAnalysis = this.calculateEventSpecificRisk(
       sameDateData, eventType, eventDate
     );
     
-    // Historical pattern analysis
     const patternAnalysis = this.analyzeHistoricalPatterns(data, eventMonth, eventDay);
     
-    // Confidence intervals (95%)
     const confidenceIntervals = this.calculateAdvancedConfidenceIntervals(
       tempStats, precipStats, windStats
     );
 
-    // Data visualization data
     const visualizationData = this.prepareVisualizationData(
       sameDateData, tempStats, precipStats, windStats
     );
@@ -1628,7 +1516,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Precipitation Statistics
   calculatePrecipitationStats(precipitations) {
     if (precipitations.length === 0) return null;
     
@@ -1647,7 +1534,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Wind Statistics
   calculateWindStats(windSpeeds) {
     if (windSpeeds.length === 0) return null;
     
@@ -1666,11 +1552,9 @@ class WeatherService {
     };
   }
 
-  // Historical Pattern Analysis
   analyzeHistoricalPatterns(data, month, day) {
     const yearlyData = {};
     
-    // Group by year
     data.forEach(d => {
       if (d.month === month && d.day === day) {
         if (!yearlyData[d.year]) {
@@ -1680,7 +1564,6 @@ class WeatherService {
       }
     });
     
-    // Calculate yearly trends
     const years = Object.keys(yearlyData).sort((a, b) => a - b);
     const tempTrends = years.map(year => {
       const yearData = yearlyData[year];
@@ -1692,7 +1575,6 @@ class WeatherService {
       };
     });
     
-    // Linear regression for trends
     const tempTrend = this.calculateTrend(tempTrends.map(t => t.avgTemp));
     const precipTrend = this.calculateTrend(tempTrends.map(t => t.avgPrecip));
     const windTrend = this.calculateTrend(tempTrends.map(t => t.avgWind));
@@ -1712,7 +1594,6 @@ class WeatherService {
     };
   }
 
-  // Calculate trend using linear regression
   calculateTrend(values) {
     if (values.length < 2) return { slope: 0, correlation: 0 };
     
@@ -1728,7 +1609,6 @@ class WeatherService {
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
     const intercept = (sumY - slope * sumX) / n;
     
-    // Calculate correlation coefficient
     const meanX = sumX / n;
     const meanY = sumY / n;
     const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
@@ -1744,7 +1624,6 @@ class WeatherService {
     };
   }
 
-  // Get overall trend direction
   getTrendDirection(trends) {
     const tempDir = trends.temperature.direction;
     const precipDir = trends.precipitation.direction;
@@ -1763,7 +1642,6 @@ class WeatherService {
     }
   }
 
-  // Calculate 95% Confidence Intervals
   calculateAdvancedConfidenceIntervals(tempStats, precipStats, windStats) {
     const z95 = 1.96; // 95% confidence
     
@@ -1783,7 +1661,6 @@ class WeatherService {
     };
   }
 
-  // Prepare data for visualization
   prepareVisualizationData(temperatures, precipitations, windSpeeds, sameDateData) {
     return {
       histogram: this.createHistogramData(temperatures),
@@ -1793,7 +1670,6 @@ class WeatherService {
     };
   }
 
-  // Create histogram data
   createHistogramData(temperatures) {
     const min = Math.min(...temperatures);
     const max = Math.max(...temperatures);
@@ -1814,7 +1690,6 @@ class WeatherService {
     return bins;
   }
 
-  // Create box plot data
   createBoxPlotData(temperatures) {
     const sorted = [...temperatures].sort((a, b) => a - b);
     return {
@@ -1830,7 +1705,6 @@ class WeatherService {
     };
   }
 
-  // Create scatter plot data
   createScatterData(windSpeeds, precipitations) {
     return windSpeeds.map((wind, i) => ({
       windSpeed: wind,
@@ -1839,7 +1713,6 @@ class WeatherService {
     }));
   }
 
-  // Create time series data
   createTimeSeriesData(sameDateData) {
     return sameDateData.map(d => ({
       year: d.year,
@@ -1849,7 +1722,6 @@ class WeatherService {
     })).sort((a, b) => a.year - b.year);
   }
 
-  // Calculate correlation coefficient
   calculateCorrelation(x, y) {
     const n = x.length;
     const sumX = x.reduce((a, b) => a + b, 0);
@@ -1861,7 +1733,6 @@ class WeatherService {
     return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
   }
 
-  // Calculate percentile
   calculatePercentile(sorted, percentile) {
     const index = (percentile / 100) * (sorted.length - 1);
     const lower = Math.floor(index);
@@ -1872,7 +1743,6 @@ class WeatherService {
     return sorted[lower] * (1 - weight) + sorted[upper] * weight;
   }
 
-  // Find outliers using IQR method
   findOutliers(values, mean, stdDev) {
     const sorted = [...values].sort((a, b) => a - b);
     const q1 = this.calculatePercentile(sorted, 25);
@@ -1884,7 +1754,6 @@ class WeatherService {
     return values.filter(v => v < lowerBound || v > upperBound);
   }
 
-  // Calculate rain distribution
   calculateRainDistribution(precipitations) {
     const ranges = [
       { min: 0, max: 0.1, label: 'No Rain' },
@@ -1901,13 +1770,11 @@ class WeatherService {
     }));
   }
 
-  // PARADE-SPECIFIC ANALYSIS FOR NASA SPACE APPS CHALLENGE
   calculateParadeSpecificAnalysis(historicalData, eventDate, eventType) {
     const rawData = historicalData.rawData;
     const eventMonth = eventDate.getMonth() + 1;
     const eventDay = eventDate.getDate();
     
-    // Filter data for same date over years
     const sameDateData = rawData.filter(d => 
       d.month === eventMonth && d.day === eventDay
     );
@@ -1923,22 +1790,16 @@ class WeatherService {
       };
     }
 
-    // Hourly risk analysis (parades typically 10:00-16:00)
     const hourlyRisk = this.calculateHourlyParadeRisk(sameDateData);
     
-    // Crowd safety analysis
     const crowdSafetyScore = this.evaluateCrowdSafety(sameDateData);
     
-    // Visibility analysis
     const visibilityScore = this.calculateVisibilityScore(sameDateData);
     
-    // Equipment protection risk
     const equipmentRisk = this.assessEquipmentRisk(sameDateData);
     
-    // Traditional parade days analysis
     const traditionalParadeDays = this.analyzeTraditionalParadeDays(rawData, eventMonth);
     
-    // Parade-specific recommendations
     const paradeRecommendations = this.generateParadeRecommendations(
       hourlyRisk, crowdSafetyScore, visibilityScore, equipmentRisk
     );
@@ -1953,7 +1814,6 @@ class WeatherService {
     };
   }
 
-  // Calculate hourly risk for parade times (10:00-16:00)
   calculateHourlyParadeRisk(sameDateData) {
     const paradeHours = [10, 11, 12, 13, 14, 15, 16];
     const hourlyRisks = {};
@@ -1965,7 +1825,6 @@ class WeatherService {
         const avgPrecip = hourData.reduce((sum, d) => sum + d.precipitation, 0) / hourData.length;
         const avgWind = hourData.reduce((sum, d) => sum + d.windSpeed, 0) / hourData.length;
         
-        // Calculate risk score for this hour
         let riskScore = 0;
         if (avgPrecip > 0.5) riskScore += 40; // High rain risk
         if (avgWind > 25) riskScore += 30; // High wind risk
@@ -1984,7 +1843,6 @@ class WeatherService {
     return hourlyRisks;
   }
 
-  // Evaluate crowd safety for parade
   evaluateCrowdSafety(sameDateData) {
     const avgTemp = sameDateData.reduce((sum, d) => sum + d.temperature, 0) / sameDateData.length;
     const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
@@ -1992,16 +1850,13 @@ class WeatherService {
     
     let safetyScore = 100;
     
-    // Temperature safety (18-28°C ideal)
     if (avgTemp < 5 || avgTemp > 40) safetyScore -= 50;
     else if (avgTemp < 10 || avgTemp > 35) safetyScore -= 30;
     else if (avgTemp < 15 || avgTemp > 30) safetyScore -= 15;
     
-    // Humidity safety (30-70% ideal)
     if (avgHumidity > 90 || avgHumidity < 20) safetyScore -= 20;
     else if (avgHumidity > 80 || avgHumidity < 30) safetyScore -= 10;
     
-    // Wind safety (under 30 km/h ideal)
     if (avgWind > 50) safetyScore -= 40;
     else if (avgWind > 30) safetyScore -= 20;
     else if (avgWind > 20) safetyScore -= 10;
@@ -2017,7 +1872,6 @@ class WeatherService {
     };
   }
 
-  // Calculate visibility score
   calculateVisibilityScore(sameDateData) {
     const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
     const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
@@ -2025,16 +1879,13 @@ class WeatherService {
     
     let visibilityScore = 100;
     
-    // Humidity affects visibility
     if (avgHumidity > 90) visibilityScore -= 30;
     else if (avgHumidity > 80) visibilityScore -= 15;
     
-    // Precipitation affects visibility
     if (avgPrecip > 5) visibilityScore -= 40;
     else if (avgPrecip > 2) visibilityScore -= 20;
     else if (avgPrecip > 0.5) visibilityScore -= 10;
     
-    // Wind can improve visibility but too much is bad
     if (avgWind > 40) visibilityScore -= 20;
     else if (avgWind < 5) visibilityScore -= 10; // Stagnant air
     
@@ -2049,7 +1900,6 @@ class WeatherService {
     };
   }
 
-  // Assess equipment protection risk
   assessEquipmentRisk(sameDateData) {
     const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
     const avgWind = sameDateData.reduce((sum, d) => sum + d.windSpeed, 0) / sameDateData.length;
@@ -2058,7 +1908,6 @@ class WeatherService {
     
     let equipmentRisk = 0;
     
-    // Rain damage risk
     if (maxPrecip > 10) equipmentRisk += 50;
     else if (maxPrecip > 5) equipmentRisk += 30;
     else if (avgPrecip > 2) equipmentRisk += 15;
@@ -2069,17 +1918,14 @@ class WeatherService {
     };
   }
 
-  // Calculate equipment risk (duplicate function)
   calculateEquipmentRiskDuplicate(maxPrecip, avgPrecip, maxWind, avgWind) {
     let equipmentRisk = 0;
     
-    // Rain damage risk
     if (maxPrecip > 10) equipmentRisk += 50;
     else if (maxPrecip > 5) equipmentRisk += 30;
     else if (avgPrecip > 2) equipmentRisk += 20;
     else if (avgPrecip > 0.5) equipmentRisk += 10;
     
-    // Wind damage risk
     if (maxWind > 60) equipmentRisk += 40;
     else if (maxWind > 40) equipmentRisk += 25;
     else if (avgWind > 25) equipmentRisk += 15;
@@ -2098,7 +1944,6 @@ class WeatherService {
     };
   }
 
-  // Get equipment protection recommendations
   getEquipmentRecommendations(riskScore, avgPrecip, avgWind) {
     const recommendations = [];
     
@@ -2125,7 +1970,6 @@ class WeatherService {
     return recommendations;
   }
 
-  // Analyze traditional parade days
   analyzeTraditionalParadeDays(rawData, month) {
     const traditionalDays = {
       1: [{ name: "New Year's Day", day: 1 }],
@@ -2175,11 +2019,9 @@ class WeatherService {
     return analysis;
   }
 
-  // Generate parade-specific recommendations
   generateParadeRecommendations(hourlyRisk, crowdSafety, visibility, equipment) {
     const recommendations = [];
     
-    // Time recommendations
     if (hourlyRisk) {
       const bestHours = Object.entries(hourlyRisk)
         .filter(([hour, data]) => data.riskScore < 30)
@@ -2190,7 +2032,6 @@ class WeatherService {
       }
     }
     
-    // Crowd safety recommendations
     if (crowdSafety && crowdSafety.level !== 'Excellent') {
       if (crowdSafety.factors.temperature < 10) {
         recommendations.push('Provide heating stations for crowd');
@@ -2203,13 +2044,11 @@ class WeatherService {
       }
     }
     
-    // Visibility recommendations
     if (visibility && visibility.level !== 'Excellent') {
       recommendations.push('Use bright colors and high-visibility materials');
       recommendations.push('Consider indoor backup for key moments');
     }
     
-    // Equipment recommendations
     if (equipment && equipment.recommendations) {
       recommendations.push(...equipment.recommendations);
     }
@@ -2217,43 +2056,34 @@ class WeatherService {
     return recommendations;
   }
 
-  // Calculate comprehensive statistics (deleted function restored)
   calculateComprehensiveStatisticsDeleted(historicalData, eventDate, eventType) {
     const data = historicalData.rawData;
     const eventMonth = eventDate.getMonth() + 1;
     const eventDay = eventDate.getDate();
     
-    // Same date historical data (last 10 years)
     const sameDateData = data.filter(d => 
       d.month === eventMonth && d.day === eventDay
     );
 
-    // Temperature analysis
     const temperatures = sameDateData.map(d => d.temperature_2m);
     const tempStats = this.calculateDetailedTemperatureStats(temperatures);
     
-    // Precipitation analysis
     const precipitations = sameDateData.map(d => d.precipitation);
     const precipStats = this.calculatePrecipitationStats(precipitations);
     
-    // Wind analysis
     const windSpeeds = sameDateData.map(d => d.wind_speed_10m);
     const windStats = this.calculateWindStats(windSpeeds);
     
-    // Event-specific risk analysis
     const eventRiskAnalysis = this.calculateEventSpecificRisk(
       sameDateData, eventType, eventDate
     );
     
-    // Historical pattern analysis
     const patternAnalysis = this.analyzeHistoricalPatterns(data, eventMonth, eventDay);
     
-    // Confidence intervals (95%)
     const confidenceIntervals = this.calculateAdvancedConfidenceIntervals(
       tempStats, precipStats, windStats
     );
 
-    // Data visualization data
     const visualizationData = this.prepareVisualizationData(
       sameDateData, tempStats, precipStats, windStats
     );
@@ -2275,7 +2105,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Temperature Statistics
   calculateDetailedTemperatureStats(temperatures) {
     if (temperatures.length === 0) return null;
     
@@ -2302,7 +2131,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Precipitation Statistics
   calculatePrecipitationStats(precipitations) {
     if (precipitations.length === 0) return null;
     
@@ -2321,7 +2149,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Wind Statistics
   calculateWindStats(windSpeeds) {
     if (windSpeeds.length === 0) return null;
     
@@ -2340,11 +2167,9 @@ class WeatherService {
     };
   }
 
-  // Historical Pattern Analysis
   analyzeHistoricalPatterns(data, month, day) {
     const yearlyData = {};
     
-    // Group by year
     data.forEach(d => {
       if (d.month === month && d.day === day) {
         if (!yearlyData[d.year]) {
@@ -2354,7 +2179,6 @@ class WeatherService {
       }
     });
     
-    // Calculate yearly trends
     const years = Object.keys(yearlyData).sort((a, b) => a - b);
     const tempTrends = years.map(year => {
       const yearData = yearlyData[year];
@@ -2366,7 +2190,6 @@ class WeatherService {
       };
     });
     
-    // Linear regression for trends
     const tempTrend = this.calculateTrend(tempTrends.map(t => t.avgTemp));
     const precipTrend = this.calculateTrend(tempTrends.map(t => t.avgPrecip));
     const windTrend = this.calculateTrend(tempTrends.map(t => t.avgWind));
@@ -2386,7 +2209,6 @@ class WeatherService {
     };
   }
 
-  // Calculate trend using linear regression
   calculateTrend(values) {
     if (values.length < 2) return { slope: 0, correlation: 0 };
     
@@ -2402,7 +2224,6 @@ class WeatherService {
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
     const intercept = (sumY - slope * sumX) / n;
     
-    // Calculate correlation coefficient
     const meanX = sumX / n;
     const meanY = sumY / n;
     const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
@@ -2418,7 +2239,6 @@ class WeatherService {
     };
   }
 
-  // Get overall trend direction
   getTrendDirection(trends) {
     const tempDir = trends.temperature.direction;
     const precipDir = trends.precipitation.direction;
@@ -2437,7 +2257,6 @@ class WeatherService {
     }
   }
 
-  // Calculate 95% Confidence Intervals
   calculateAdvancedConfidenceIntervals(tempStats, precipStats, windStats) {
     const z95 = 1.96; // 95% confidence
     
@@ -2457,7 +2276,6 @@ class WeatherService {
     };
   }
 
-  // Prepare data for visualization
   prepareVisualizationData(temperatures, precipitations, windSpeeds, sameDateData) {
     return {
       histogram: this.createHistogramData(temperatures),
@@ -2467,7 +2285,6 @@ class WeatherService {
     };
   }
 
-  // Create histogram data
   createHistogramData(temperatures) {
     const min = Math.min(...temperatures);
     const max = Math.max(...temperatures);
@@ -2488,7 +2305,6 @@ class WeatherService {
     return bins;
   }
 
-  // Create box plot data
   createBoxPlotData(temperatures) {
     const sorted = [...temperatures].sort((a, b) => a - b);
     return {
@@ -2504,7 +2320,6 @@ class WeatherService {
     };
   }
 
-  // Create scatter plot data
   createScatterData(windSpeeds, precipitations) {
     return windSpeeds.map((wind, i) => ({
       windSpeed: wind,
@@ -2513,7 +2328,6 @@ class WeatherService {
     }));
   }
 
-  // Create time series data
   createTimeSeriesData(sameDateData) {
     return sameDateData.map(d => ({
       year: d.year,
@@ -2523,7 +2337,6 @@ class WeatherService {
     })).sort((a, b) => a.year - b.year);
   }
 
-  // Calculate correlation coefficient
   calculateCorrelation(x, y) {
     const n = x.length;
     const sumX = x.reduce((a, b) => a + b, 0);
@@ -2535,7 +2348,6 @@ class WeatherService {
     return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
   }
 
-  // Calculate percentile
   calculatePercentile(sorted, percentile) {
     const index = (percentile / 100) * (sorted.length - 1);
     const lower = Math.floor(index);
@@ -2546,7 +2358,6 @@ class WeatherService {
     return sorted[lower] * (1 - weight) + sorted[upper] * weight;
   }
 
-  // Find outliers using IQR method
   findOutliers(values, mean, stdDev) {
     const sorted = [...values].sort((a, b) => a - b);
     const q1 = this.calculatePercentile(sorted, 25);
@@ -2558,7 +2369,6 @@ class WeatherService {
     return values.filter(v => v < lowerBound || v > upperBound);
   }
 
-  // Calculate rain distribution
   calculateRainDistribution(precipitations) {
     const ranges = [
       { min: 0, max: 0.1, label: 'No Rain' },
@@ -2575,13 +2385,11 @@ class WeatherService {
     }));
   }
 
-  // PARADE-SPECIFIC ANALYSIS FOR NASA SPACE APPS CHALLENGE
   calculateParadeSpecificAnalysis(historicalData, eventDate, eventType) {
     const rawData = historicalData.rawData;
     const eventMonth = eventDate.getMonth() + 1;
     const eventDay = eventDate.getDate();
     
-    // Filter data for same date over years
     const sameDateData = rawData.filter(d => 
       d.month === eventMonth && d.day === eventDay
     );
@@ -2597,22 +2405,16 @@ class WeatherService {
       };
     }
 
-    // Hourly risk analysis (parades typically 10:00-16:00)
     const hourlyRisk = this.calculateHourlyParadeRisk(sameDateData);
     
-    // Crowd safety analysis
     const crowdSafetyScore = this.evaluateCrowdSafety(sameDateData);
     
-    // Visibility analysis
     const visibilityScore = this.calculateVisibilityScore(sameDateData);
     
-    // Equipment protection risk
     const equipmentRisk = this.assessEquipmentRisk(sameDateData);
     
-    // Traditional parade days analysis
     const traditionalParadeDays = this.analyzeTraditionalParadeDays(rawData, eventMonth);
     
-    // Parade-specific recommendations
     const paradeRecommendations = this.generateParadeRecommendations(
       hourlyRisk, crowdSafetyScore, visibilityScore, equipmentRisk
     );
@@ -2627,7 +2429,6 @@ class WeatherService {
     };
   }
 
-  // Calculate hourly risk for parade times (10:00-16:00)
   calculateHourlyParadeRisk(sameDateData) {
     const paradeHours = [10, 11, 12, 13, 14, 15, 16];
     const hourlyRisks = {};
@@ -2639,7 +2440,6 @@ class WeatherService {
         const avgPrecip = hourData.reduce((sum, d) => sum + d.precipitation, 0) / hourData.length;
         const avgWind = hourData.reduce((sum, d) => sum + d.windSpeed, 0) / hourData.length;
         
-        // Calculate risk score for this hour
         let riskScore = 0;
         if (avgPrecip > 0.5) riskScore += 40; // High rain risk
         if (avgWind > 25) riskScore += 30; // High wind risk
@@ -2658,7 +2458,6 @@ class WeatherService {
     return hourlyRisks;
   }
 
-  // Evaluate crowd safety for parade
   evaluateCrowdSafety(sameDateData) {
     const avgTemp = sameDateData.reduce((sum, d) => sum + d.temperature, 0) / sameDateData.length;
     const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
@@ -2666,16 +2465,13 @@ class WeatherService {
     
     let safetyScore = 100;
     
-    // Temperature safety (18-28°C ideal)
     if (avgTemp < 5 || avgTemp > 40) safetyScore -= 50;
     else if (avgTemp < 10 || avgTemp > 35) safetyScore -= 30;
     else if (avgTemp < 15 || avgTemp > 30) safetyScore -= 15;
     
-    // Humidity safety (30-70% ideal)
     if (avgHumidity > 90 || avgHumidity < 20) safetyScore -= 20;
     else if (avgHumidity > 80 || avgHumidity < 30) safetyScore -= 10;
     
-    // Wind safety (under 30 km/h ideal)
     if (avgWind > 50) safetyScore -= 40;
     else if (avgWind > 30) safetyScore -= 20;
     else if (avgWind > 20) safetyScore -= 10;
@@ -2691,7 +2487,6 @@ class WeatherService {
     };
   }
 
-  // Calculate visibility score
   calculateVisibilityScore(sameDateData) {
     const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
     const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
@@ -2699,16 +2494,13 @@ class WeatherService {
     
     let visibilityScore = 100;
     
-    // Humidity affects visibility
     if (avgHumidity > 90) visibilityScore -= 30;
     else if (avgHumidity > 80) visibilityScore -= 15;
     
-    // Precipitation affects visibility
     if (avgPrecip > 5) visibilityScore -= 40;
     else if (avgPrecip > 2) visibilityScore -= 20;
     else if (avgPrecip > 0.5) visibilityScore -= 10;
     
-    // Wind can improve visibility but too much is bad
     if (avgWind > 40) visibilityScore -= 20;
     else if (avgWind < 5) visibilityScore -= 10; // Stagnant air
     
@@ -2723,7 +2515,6 @@ class WeatherService {
     };
   }
 
-  // Assess equipment protection risk
   assessEquipmentRisk(sameDateData) {
     const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
     const avgWind = sameDateData.reduce((sum, d) => sum + d.windSpeed, 0) / sameDateData.length;
@@ -2732,7 +2523,6 @@ class WeatherService {
     
     let equipmentRisk = 0;
     
-    // Rain damage risk
     if (maxPrecip > 10) equipmentRisk += 50;
     else if (maxPrecip > 5) equipmentRisk += 30;
     else if (avgPrecip > 2) equipmentRisk += 15;
@@ -2743,17 +2533,14 @@ class WeatherService {
     };
   }
 
-  // Calculate equipment risk (duplicate function)
   calculateEquipmentRiskDuplicate(maxPrecip, avgPrecip, maxWind, avgWind) {
     let equipmentRisk = 0;
     
-    // Rain damage risk
     if (maxPrecip > 10) equipmentRisk += 50;
     else if (maxPrecip > 5) equipmentRisk += 30;
     else if (avgPrecip > 2) equipmentRisk += 20;
     else if (avgPrecip > 0.5) equipmentRisk += 10;
     
-    // Wind damage risk
     if (maxWind > 60) equipmentRisk += 40;
     else if (maxWind > 40) equipmentRisk += 25;
     else if (avgWind > 25) equipmentRisk += 15;
@@ -2772,7 +2559,6 @@ class WeatherService {
     };
   }
 
-  // Get equipment protection recommendations
   getEquipmentRecommendations(riskScore, avgPrecip, avgWind) {
     const recommendations = [];
     
@@ -2799,7 +2585,6 @@ class WeatherService {
     return recommendations;
   }
 
-  // Analyze traditional parade days
   analyzeTraditionalParadeDays(rawData, month) {
     const traditionalDays = {
       1: [{ name: "New Year's Day", day: 1 }],
@@ -2849,11 +2634,9 @@ class WeatherService {
     return analysis;
   }
 
-  // Generate parade-specific recommendations
   generateParadeRecommendations(hourlyRisk, crowdSafety, visibility, equipment) {
     const recommendations = [];
     
-    // Time recommendations
     if (hourlyRisk) {
       const bestHours = Object.entries(hourlyRisk)
         .filter(([hour, data]) => data.riskScore < 30)
@@ -2864,7 +2647,6 @@ class WeatherService {
       }
     }
     
-    // Crowd safety recommendations
     if (crowdSafety && crowdSafety.level !== 'Excellent') {
       if (crowdSafety.factors.temperature < 10) {
         recommendations.push('Provide heating stations for crowd');
@@ -2877,13 +2659,11 @@ class WeatherService {
       }
     }
     
-    // Visibility recommendations
     if (visibility && visibility.level !== 'Excellent') {
       recommendations.push('Use bright colors and high-visibility materials');
       recommendations.push('Consider indoor backup for key moments');
     }
     
-    // Equipment recommendations
     if (equipment && equipment.recommendations) {
       recommendations.push(...equipment.recommendations);
     }
@@ -2891,43 +2671,34 @@ class WeatherService {
     return recommendations;
   }
 
-  // Calculate comprehensive statistics (deleted function restored)
   calculateComprehensiveStatisticsDeleted(historicalData, eventDate, eventType) {
     const data = historicalData.rawData;
     const eventMonth = eventDate.getMonth() + 1;
     const eventDay = eventDate.getDate();
     
-    // Same date historical data (last 10 years)
     const sameDateData = data.filter(d => 
       d.month === eventMonth && d.day === eventDay
     );
 
-    // Temperature analysis
     const temperatures = sameDateData.map(d => d.temperature_2m);
     const tempStats = this.calculateDetailedTemperatureStats(temperatures);
     
-    // Precipitation analysis
     const precipitations = sameDateData.map(d => d.precipitation);
     const precipStats = this.calculatePrecipitationStats(precipitations);
     
-    // Wind analysis
     const windSpeeds = sameDateData.map(d => d.wind_speed_10m);
     const windStats = this.calculateWindStats(windSpeeds);
     
-    // Event-specific risk analysis
     const eventRiskAnalysis = this.calculateEventSpecificRisk(
       sameDateData, eventType, eventDate
     );
     
-    // Historical pattern analysis
     const patternAnalysis = this.analyzeHistoricalPatterns(data, eventMonth, eventDay);
     
-    // Confidence intervals (95%)
     const confidenceIntervals = this.calculateAdvancedConfidenceIntervals(
       tempStats, precipStats, windStats
     );
 
-    // Data visualization data
     const visualizationData = this.prepareVisualizationData(
       sameDateData, tempStats, precipStats, windStats
     );
@@ -2949,7 +2720,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Temperature Statistics
   calculateDetailedTemperatureStats(temperatures) {
     if (temperatures.length === 0) return null;
     
@@ -2976,7 +2746,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Precipitation Statistics
   calculatePrecipitationStats(precipitations) {
     if (precipitations.length === 0) return null;
     
@@ -2995,7 +2764,6 @@ class WeatherService {
     };
   }
 
-  // Detailed Wind Statistics
   calculateWindStats(windSpeeds) {
     if (windSpeeds.length === 0) return null;
     
@@ -3014,11 +2782,9 @@ class WeatherService {
     };
   }
 
-  // Historical Pattern Analysis
   analyzeHistoricalPatterns(data, month, day) {
     const yearlyData = {};
     
-    // Group by year
     data.forEach(d => {
       if (d.month === month && d.day === day) {
         if (!yearlyData[d.year]) {
@@ -3028,7 +2794,6 @@ class WeatherService {
       }
     });
     
-    // Calculate yearly trends
     const years = Object.keys(yearlyData).sort((a, b) => a - b);
     const tempTrends = years.map(year => {
       const yearData = yearlyData[year];
@@ -3040,7 +2805,6 @@ class WeatherService {
       };
     });
     
-    // Linear regression for trends
     const tempTrend = this.calculateTrend(tempTrends.map(t => t.avgTemp));
     const precipTrend = this.calculateTrend(tempTrends.map(t => t.avgPrecip));
     const windTrend = this.calculateTrend(tempTrends.map(t => t.avgWind));
@@ -3060,7 +2824,6 @@ class WeatherService {
     };
   }
 
-  // Calculate trend using linear regression
   calculateTrend(values) {
     if (values.length < 2) return { slope: 0, correlation: 0 };
     
@@ -3076,7 +2839,6 @@ class WeatherService {
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
     const intercept = (sumY - slope * sumX) / n;
     
-    // Calculate correlation coefficient
     const meanX = sumX / n;
     const meanY = sumY / n;
     const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
@@ -3092,7 +2854,6 @@ class WeatherService {
     };
   }
 
-  // Get overall trend direction
   getTrendDirection(trends) {
     const tempDir = trends.temperature.direction;
     const precipDir = trends.precipitation.direction;
@@ -3111,7 +2872,6 @@ class WeatherService {
     }
   }
 
-  // Calculate 95% Confidence Intervals
   calculateAdvancedConfidenceIntervals(tempStats, precipStats, windStats) {
     const z95 = 1.96; // 95% confidence
     
@@ -3131,7 +2891,6 @@ class WeatherService {
     };
   }
 
-  // Prepare data for visualization
   prepareVisualizationData(temperatures, precipitations, windSpeeds, sameDateData) {
     return {
       histogram: this.createHistogramData(temperatures),
@@ -3141,7 +2900,6 @@ class WeatherService {
     };
   }
 
-  // Create histogram data
   createHistogramData(temperatures) {
     const min = Math.min(...temperatures);
     const max = Math.max(...temperatures);
@@ -3162,7 +2920,6 @@ class WeatherService {
     return bins;
   }
 
-  // Create box plot data
   createBoxPlotData(temperatures) {
     const sorted = [...temperatures].sort((a, b) => a - b);
     return {
@@ -3178,7 +2935,6 @@ class WeatherService {
     };
   }
 
-  // Create scatter plot data
   createScatterData(windSpeeds, precipitations) {
     return windSpeeds.map((wind, i) => ({
       windSpeed: wind,
@@ -3187,7 +2943,6 @@ class WeatherService {
     }));
   }
 
-  // Create time series data
   createTimeSeriesData(sameDateData) {
     return sameDateData.map(d => ({
       year: d.year,
@@ -3197,7 +2952,6 @@ class WeatherService {
     })).sort((a, b) => a.year - b.year);
   }
 
-  // Calculate correlation coefficient
   calculateCorrelation(x, y) {
     const n = x.length;
     const sumX = x.reduce((a, b) => a + b, 0);
@@ -3209,7 +2963,6 @@ class WeatherService {
     return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
   }
 
-  // Calculate percentile
   calculatePercentile(sorted, percentile) {
     const index = (percentile / 100) * (sorted.length - 1);
     const lower = Math.floor(index);
@@ -3220,7 +2973,6 @@ class WeatherService {
     return sorted[lower] * (1 - weight) + sorted[upper] * weight;
   }
 
-  // Find outliers using IQR method
   findOutliers(values, mean, stdDev) {
     const sorted = [...values].sort((a, b) => a - b);
     const q1 = this.calculatePercentile(sorted, 25);
@@ -3232,7 +2984,6 @@ class WeatherService {
     return values.filter(v => v < lowerBound || v > upperBound);
   }
 
-  // Calculate rain distribution
   calculateRainDistribution(precipitations) {
     const ranges = [
       { min: 0, max: 0.1, label: 'No Rain' },
@@ -3249,13 +3000,11 @@ class WeatherService {
     }));
   }
 
-  // PARADE-SPECIFIC ANALYSIS FOR NASA SPACE APPS CHALLENGE
   calculateParadeSpecificAnalysis(historicalData, eventDate, eventType) {
     const rawData = historicalData.rawData;
     const eventMonth = eventDate.getMonth() + 1;
     const eventDay = eventDate.getDate();
     
-    // Filter data for same date over years
     const sameDateData = rawData.filter(d => 
       d.month === eventMonth && d.day === eventDay
     );
@@ -3271,22 +3020,16 @@ class WeatherService {
       };
     }
 
-    // Hourly risk analysis (parades typically 10:00-16:00)
     const hourlyRisk = this.calculateHourlyParadeRisk(sameDateData);
     
-    // Crowd safety analysis
     const crowdSafetyScore = this.evaluateCrowdSafety(sameDateData);
     
-    // Visibility analysis
     const visibilityScore = this.calculateVisibilityScore(sameDateData);
     
-    // Equipment protection risk
     const equipmentRisk = this.assessEquipmentRisk(sameDateData);
     
-    // Traditional parade days analysis
     const traditionalParadeDays = this.analyzeTraditionalParadeDays(rawData, eventMonth);
     
-    // Parade-specific recommendations
     const paradeRecommendations = this.generateParadeRecommendations(
       hourlyRisk, crowdSafetyScore, visibilityScore, equipmentRisk
     );
@@ -3301,7 +3044,6 @@ class WeatherService {
     };
   }
 
-  // Calculate hourly risk for parade times (10:00-16:00)
   calculateHourlyParadeRisk(sameDateData) {
     const paradeHours = [10, 11, 12, 13, 14, 15, 16];
     const hourlyRisks = {};
@@ -3313,7 +3055,6 @@ class WeatherService {
         const avgPrecip = hourData.reduce((sum, d) => sum + d.precipitation, 0) / hourData.length;
         const avgWind = hourData.reduce((sum, d) => sum + d.windSpeed, 0) / hourData.length;
         
-        // Calculate risk score for this hour
         let riskScore = 0;
         if (avgPrecip > 0.5) riskScore += 40; // High rain risk
         if (avgWind > 25) riskScore += 30; // High wind risk
@@ -3332,7 +3073,6 @@ class WeatherService {
     return hourlyRisks;
   }
 
-  // Evaluate crowd safety for parade
   evaluateCrowdSafety(sameDateData) {
     const avgTemp = sameDateData.reduce((sum, d) => sum + d.temperature, 0) / sameDateData.length;
     const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
@@ -3340,16 +3080,13 @@ class WeatherService {
     
     let safetyScore = 100;
     
-    // Temperature safety (18-28°C ideal)
     if (avgTemp < 5 || avgTemp > 40) safetyScore -= 50;
     else if (avgTemp < 10 || avgTemp > 35) safetyScore -= 30;
     else if (avgTemp < 15 || avgTemp > 30) safetyScore -= 15;
     
-    // Humidity safety (30-70% ideal)
     if (avgHumidity > 90 || avgHumidity < 20) safetyScore -= 20;
     else if (avgHumidity > 80 || avgHumidity < 30) safetyScore -= 10;
     
-    // Wind safety (under 30 km/h ideal)
     if (avgWind > 50) safetyScore -= 40;
     else if (avgWind > 30) safetyScore -= 20;
     else if (avgWind > 20) safetyScore -= 10;
@@ -3365,7 +3102,6 @@ class WeatherService {
     };
   }
 
-  // Calculate visibility score
   calculateVisibilityScore(sameDateData) {
     const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
     const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
@@ -3373,16 +3109,13 @@ class WeatherService {
     
     let visibilityScore = 100;
     
-    // Humidity affects visibility
     if (avgHumidity > 90) visibilityScore -= 30;
     else if (avgHumidity > 80) visibilityScore -= 15;
     
-    // Precipitation affects visibility
     if (avgPrecip > 5) visibilityScore -= 40;
     else if (avgPrecip > 2) visibilityScore -= 20;
     else if (avgPrecip > 0.5) visibilityScore -= 10;
     
-    // Wind can improve visibility but too much is bad
     if (avgWind > 40) visibilityScore -= 20;
     else if (avgWind < 5) visibilityScore -= 10; // Stagnant air
     
@@ -3397,7 +3130,6 @@ class WeatherService {
     };
   }
 
-  // Assess equipment protection risk
   assessEquipmentRisk(sameDateData) {
     const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
     const avgWind = sameDateData.reduce((sum, d) => sum + d.windSpeed, 0) / sameDateData.length;
@@ -3406,7 +3138,6 @@ class WeatherService {
     
     let equipmentRisk = 0;
     
-    // Rain damage risk
     if (maxPrecip > 10) equipmentRisk += 50;
     else if (maxPrecip > 5) equipmentRisk += 30;
     else if (avgPrecip > 2) equipmentRisk += 15;
@@ -3417,14 +3148,11 @@ class WeatherService {
     };
   }
 
-  // Export to CSV
   exportToCSV(weatherData, probabilities, location) {
     const csvData = [];
     
-    // Header
     csvData.push('Date,Location,Temperature (C),Precipitation (mm),Wind Speed (km/h),Humidity (%),Data Type');
     
-    // Add current weather data
     if (weatherData && weatherData.current) {
       const temp = weatherData.current.temperature_2m || 0;
       const precip = weatherData.current.precipitation || 0;
@@ -3442,17 +3170,14 @@ class WeatherService {
       ].join(','));
     }
     
-    // Add historical data sample (last 10 days)
     if (probabilities && probabilities.historicalData) {
       const historicalData = probabilities.historicalData;
       const dataKeys = Object.keys(historicalData);
       
       if (dataKeys.length > 0) {
-        // Get the first available parameter to extract dates
         const firstParam = dataKeys[0];
         const dates = Object.keys(historicalData[firstParam] || {});
         
-        // Show last 10 days of historical data
         const recentDates = dates.slice(-10);
         
         recentDates.forEach(date => {
@@ -3474,7 +3199,6 @@ class WeatherService {
       }
     }
     
-    // Add probability summary
     csvData.push('');
     csvData.push('PROBABILITY ANALYSIS');
     csvData.push('Risk Type,Probability (%)');
@@ -3489,7 +3213,6 @@ class WeatherService {
       });
     }
     
-    // Add Worfe branding
     csvData.push('');
     csvData.push('Generated by Worfe Weather Dashboard');
     csvData.push('NASA Space Apps Challenge 2025 - Will It Rain On My Parade?');
@@ -3502,7 +3225,6 @@ class WeatherService {
     return csvData.join('\n');
   }
 
-  // Export to JSON
   exportToJSON(weatherData, probabilities, location) {
     return {
       location: {

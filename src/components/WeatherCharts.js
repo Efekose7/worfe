@@ -19,7 +19,6 @@ const WeatherCharts = () => {
 
   if (!historicalData || !probabilities) return null;
 
-  // Prepare data for charts
   const prepareTemperatureData = () => {
     const years = [...new Set(historicalData.rawData.map(d => new Date(d.date).getFullYear()))].sort();
     return years.map(year => {

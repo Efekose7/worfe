@@ -5,7 +5,6 @@ import { MapPin, Search, Loader2 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default markers in React Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -13,7 +12,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Custom NASA-themed marker icon
 const nasaIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml;base64,' + btoa(`
     <svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
@@ -28,7 +26,6 @@ const nasaIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-// Map click handler component
 function MapClickHandler({ onLocationSelect }) {
   useMapEvents({
     click: (e) => {
@@ -43,7 +40,6 @@ function MapClickHandler({ onLocationSelect }) {
   return null;
 }
 
-// Location search component
 function LocationSearch({ onLocationSelect }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -136,7 +132,6 @@ const MapComponent = () => {
   const { selectedLocation, setLocation } = useWeather();
   const [mapCenter, setMapCenter] = useState([40.7128, -74.0060]); // Default to NYC
 
-  // Update map center when location changes
   useEffect(() => {
     if (selectedLocation) {
       setMapCenter([selectedLocation.lat, selectedLocation.lng]);

@@ -1,6 +1,4 @@
-// Utility functions for the NASA Weather Dashboard
 
-// Format temperature with proper units
 export const formatTemperature = (temp, unit = 'metric') => {
   if (unit === 'imperial') {
     return `${(temp * 9/5 + 32).toFixed(1)}°F`;
@@ -8,7 +6,6 @@ export const formatTemperature = (temp, unit = 'metric') => {
   return `${temp.toFixed(1)}°C`;
 };
 
-// Format wind speed with proper units
 export const formatWindSpeed = (speed, unit = 'metric') => {
   if (unit === 'imperial') {
     return `${(speed * 0.621371).toFixed(1)} mph`;
@@ -16,27 +13,21 @@ export const formatWindSpeed = (speed, unit = 'metric') => {
   return `${speed.toFixed(1)} km/h`;
 };
 
-// Format precipitation
 export const formatPrecipitation = (precip) => {
   return `${precip.toFixed(1)} mm`;
 };
 
-// Calculate heat index
 export const calculateHeatIndex = (temp, humidity) => {
-  // Convert to Fahrenheit for calculation
   const tempF = temp * 9/5 + 32;
   
-  // Heat index calculation (simplified)
   const hi = -42.379 + 2.04901523 * tempF + 10.14333127 * humidity
     - 0.22475541 * tempF * humidity - 6.83783e-3 * tempF * tempF
     - 5.481717e-2 * humidity * humidity + 1.22874e-3 * tempF * tempF * humidity
     + 8.5282e-4 * tempF * humidity * humidity - 1.99e-6 * tempF * tempF * humidity * humidity;
   
-  // Convert back to Celsius
   return (hi - 32) * 5/9;
 };
 
-// Get weather condition description
 export const getWeatherCondition = (code) => {
   const conditions = {
     0: 'Clear sky',
@@ -72,7 +63,6 @@ export const getWeatherCondition = (code) => {
   return conditions[code] || 'Unknown condition';
 };
 
-// Get weather icon based on condition
 export const getWeatherIcon = (code) => {
   if (code === 0 || code === 1) return 'Clear';
   if (code === 2 || code === 3) return 'Cloudy';
@@ -84,7 +74,6 @@ export const getWeatherIcon = (code) => {
   return 'Partly Cloudy';
 };
 
-// Format date for display
 export const formatDate = (dateString) => {
   try {
     const date = new Date(dateString);
@@ -99,12 +88,10 @@ export const formatDate = (dateString) => {
   }
 };
 
-// Format date for API calls
 export const formatDateForAPI = (date) => {
   return date.toISOString().split('T')[0];
 };
 
-// Calculate date range for historical analysis
 export const getDateRange = (targetDate, windowDays = 7) => {
   const date = new Date(targetDate);
   const start = new Date(date);
@@ -118,7 +105,6 @@ export const getDateRange = (targetDate, windowDays = 7) => {
   };
 };
 
-// Generate shareable URL
 export const generateShareableURL = (location, date, thresholds) => {
   const params = new URLSearchParams({
     lat: location.lat,
@@ -135,7 +121,6 @@ export const generateShareableURL = (location, date, thresholds) => {
   return `${window.location.origin}?${params.toString()}`;
 };
 
-// Parse shareable URL parameters
 export const parseShareableURL = () => {
   const params = new URLSearchParams(window.location.search);
   
@@ -160,7 +145,6 @@ export const parseShareableURL = () => {
   return null;
 };
 
-// Debounce function for search
 export const debounce = (func, wait) => {
   let timeout;
   return function executedFunction(...args) {
@@ -173,12 +157,10 @@ export const debounce = (func, wait) => {
   };
 };
 
-// Validate coordinates
 export const isValidCoordinates = (lat, lng) => {
   return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 };
 
-// Calculate distance between two coordinates
 export const calculateDistance = (lat1, lng1, lat2, lng2) => {
   const R = 6371; // Earth's radius in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -190,12 +172,10 @@ export const calculateDistance = (lat1, lng1, lat2, lng2) => {
   return R * c;
 };
 
-// Generate random ID
 export const generateId = () => {
   return Math.random().toString(36).substr(2, 9);
 };
 
-// Local storage helpers
 export const storage = {
   set: (key, value) => {
     try {
@@ -224,7 +204,6 @@ export const storage = {
   }
 };
 
-// Error handling helpers
 export const handleError = (error, context = 'Unknown error') => {
   console.error(`${context}:`, error);
   
@@ -239,7 +218,6 @@ export const handleError = (error, context = 'Unknown error') => {
   return 'An unexpected error occurred';
 };
 
-// API response validation
 export const validateAPIResponse = (response) => {
   if (!response || typeof response !== 'object') {
     throw new Error('Invalid API response format');
@@ -248,7 +226,6 @@ export const validateAPIResponse = (response) => {
   return true;
 };
 
-// Format file size
 export const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 Bytes';
   
@@ -259,7 +236,6 @@ export const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-// Copy to clipboard
 export const copyToClipboard = async (text) => {
   try {
     await navigator.clipboard.writeText(text);

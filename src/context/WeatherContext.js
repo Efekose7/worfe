@@ -173,7 +173,6 @@ export function WeatherProvider({ children }) {
               console.log('Received probabilities:', probabilities);
               dispatch({ type: 'SET_PROBABILITIES', payload: probabilities });
               
-              // Fetch additional data
               try {
                 console.log('Fetching additional data...');
                 const [apodData, neoData] = await Promise.allSettled([
@@ -194,10 +193,8 @@ export function WeatherProvider({ children }) {
                 console.log('Additional data unavailable:', nasaError.message);
               }
               
-              // Set loading to false after all data is fetched
               dispatch({ type: 'SET_LOADING', payload: false });
               
-              // Auto-scroll to data section on mobile after data is loaded
               setTimeout(() => {
                 if (window.innerWidth <= 768) { // Mobile check
                   const dataSection = document.querySelector('[data-section="weather-data"]');
@@ -241,7 +238,6 @@ export function WeatherProvider({ children }) {
     dispatch({ type: 'CLEAR_DATA' });
   };
 
-  // Auto-fetch data when location or date changes
   useEffect(() => {
     if (state.selectedLocation && state.selectedDate) {
       fetchWeatherData(state.selectedLocation, state.selectedDate);

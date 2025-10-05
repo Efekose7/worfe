@@ -15,7 +15,6 @@ function App() {
   const [showLanding, setShowLanding] = useState(true);
 
   const handleDateChange = (newDate) => {
-    // Date change logic will be handled by WeatherContext
     console.log('Date changed to:', newDate);
   };
 

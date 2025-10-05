@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
 
-// Event types and critical factors
 const eventTypes = {
   wedding: {
     name: "Wedding",
@@ -64,7 +63,6 @@ const eventTypes = {
   }
 };
 
-// Risk score calculation function
 const calculateEventRiskScore = (weatherData, eventType) => {
   if (!weatherData || !weatherData.current) {
     return {
@@ -80,7 +78,6 @@ const calculateEventRiskScore = (weatherData, eventType) => {
   const details = [];
   const current = weatherData.current;
 
-  // Precipitation risk
   if (current.precipitation > event.criticalFactors.rain.threshold) {
     const rainRisk = Math.min(100, (current.precipitation / event.criticalFactors.rain.threshold) * 100);
     riskScore += rainRisk * event.criticalFactors.rain.weight;
@@ -93,7 +90,6 @@ const calculateEventRiskScore = (weatherData, eventType) => {
     });
   }
 
-  // Wind risk
   if (current.wind_speed_10m > event.criticalFactors.wind.threshold) {
     const windRisk = Math.min(100, (current.wind_speed_10m / event.criticalFactors.wind.threshold) * 100);
     riskScore += windRisk * event.criticalFactors.wind.weight;
@@ -106,7 +102,6 @@ const calculateEventRiskScore = (weatherData, eventType) => {
     });
   }
 
-  // Temperature risk
   const [minTemp, maxTemp] = event.criticalFactors.temp.range;
   if (current.temperature_2m < minTemp || current.temperature_2m > maxTemp) {
     const tempRisk = current.temperature_2m < minTemp
@@ -122,7 +117,6 @@ const calculateEventRiskScore = (weatherData, eventType) => {
     });
   }
 
-  // Calculate confidence based on data quality
   const confidence = Math.min(95, 70 + (details.length * 5));
 
   return {
@@ -147,10 +141,8 @@ const EventPlanner = () => {
     setSelectedEvent(eventType);
     setShowRiskAnalysis(true);
     
-    // Start analysis if we have weather data
     if (weatherData && weatherData.current) {
       setIsAnalyzing(true);
-      // Simulate analysis time
       setTimeout(() => {
         setIsAnalyzing(false);
       }, 2000);

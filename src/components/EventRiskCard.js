@@ -16,7 +16,6 @@ const EventRiskCard = ({ eventType, riskData, weatherData }) => {
     return <AlertTriangle className="w-12 h-12 text-red-500" />;
   };
 
-  // Event types
   const eventTypes = {
     wedding: { name: "Wedding", icon: "👰", duration: "4-8 hours" },
     concert: { name: "Concert/Festival", icon: "🎵", duration: "3-6 hours" },

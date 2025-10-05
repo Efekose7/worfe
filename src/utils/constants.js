@@ -1,6 +1,4 @@
-// Constants for the NASA Weather Dashboard
 
-// API Configuration
 export const API_CONFIG = {
   OPEN_METEO_BASE_URL: 'https://archive-api.open-meteo.com/v1/archive',
   OPEN_METEO_FORECAST_URL: 'https://api.open-meteo.com/v1/forecast',
@@ -10,7 +8,6 @@ export const API_CONFIG = {
   RETRY_ATTEMPTS: 3
 };
 
-// Default Weather Thresholds
 export const DEFAULT_THRESHOLDS = {
   veryHot: 32,        // °C
   veryCold: 0,        // °C
@@ -19,7 +16,6 @@ export const DEFAULT_THRESHOLDS = {
   veryUncomfortable: 40 // Heat index °C
 };
 
-// Analysis Settings
 export const DEFAULT_SETTINGS = {
   yearsOfData: 20,
   dateWindow: 7, // ±7 days
@@ -27,7 +23,6 @@ export const DEFAULT_SETTINGS = {
   confidenceLevel: 0.95 // 95% confidence interval
 };
 
-// Weather Condition Codes (WMO)
 export const WEATHER_CODES = {
   0: { description: 'Clear sky', icon: 'Clear', color: '#FFD60A' },
   1: { description: 'Mainly clear', icon: 'Partly Cloudy', color: '#FFD60A' },
@@ -59,7 +54,6 @@ export const WEATHER_CODES = {
   99: { description: 'Thunderstorm with heavy hail', icon: 'Thunderstorm', color: '#7209B7' }
 };
 
-// Color Palette
 export const COLORS = {
   nasaBlue: '#0B3D91',
   nasaRed: '#FC3D21',
@@ -73,7 +67,6 @@ export const COLORS = {
   neutralGray: '#8D99AE'
 };
 
-// Chart Colors
 export const CHART_COLORS = {
   temperature: {
     max: '#EF476F',
@@ -86,7 +79,6 @@ export const CHART_COLORS = {
   pressure: '#8D99AE'
 };
 
-// Map Configuration
 export const MAP_CONFIG = {
   defaultCenter: [40.7128, -74.0060], // New York City
   defaultZoom: 10,
@@ -96,7 +88,6 @@ export const MAP_CONFIG = {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 };
 
-// Responsive Breakpoints
 export const BREAKPOINTS = {
   mobile: 320,
   tablet: 768,
@@ -104,7 +95,6 @@ export const BREAKPOINTS = {
   large: 1280
 };
 
-// Animation Durations
 export const ANIMATIONS = {
   fast: 200,
   normal: 300,
@@ -112,7 +102,6 @@ export const ANIMATIONS = {
   verySlow: 1000
 };
 
-// Error Messages
 export const ERROR_MESSAGES = {
   NETWORK_ERROR: 'Network connection error. Please check your internet connection.',
   API_ERROR: 'Weather data service is temporarily unavailable. Please try again later.',
@@ -122,7 +111,6 @@ export const ERROR_MESSAGES = {
   GENERIC_ERROR: 'An unexpected error occurred. Please refresh the page and try again.'
 };
 
-// Success Messages
 export const SUCCESS_MESSAGES = {
   DATA_LOADED: 'Weather data loaded successfully',
   EXPORT_SUCCESS: 'Data exported successfully',
@@ -130,7 +118,6 @@ export const SUCCESS_MESSAGES = {
   LOCATION_SELECTED: 'Location selected successfully'
 };
 
-// Loading Messages
 export const LOADING_MESSAGES = [
   'Fetching weather data...',
   'Analyzing historical patterns...',
@@ -139,7 +126,6 @@ export const LOADING_MESSAGES = [
   'Generating visualizations...'
 ];
 
-// File Export Configuration
 export const EXPORT_CONFIG = {
   CSV: {
     mimeType: 'text/csv',
@@ -153,7 +139,6 @@ export const EXPORT_CONFIG = {
   }
 };
 
-// Local Storage Keys
 export const STORAGE_KEYS = {
   SELECTED_LOCATION: 'nasa_weather_selected_location',
   SELECTED_DATE: 'nasa_weather_selected_date',
@@ -163,14 +148,12 @@ export const STORAGE_KEYS = {
   USER_PREFERENCES: 'nasa_weather_user_preferences'
 };
 
-// Cache Configuration
 export const CACHE_CONFIG = {
   TTL: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
   MAX_ENTRIES: 100,
   CLEANUP_INTERVAL: 60 * 60 * 1000 // 1 hour
 };
 
-// Accessibility Configuration
 export const A11Y_CONFIG = {
   FOCUS_VISIBLE: true,
   HIGH_CONTRAST: false,
@@ -178,7 +161,6 @@ export const A11Y_CONFIG = {
   SCREEN_READER: false
 };
 
-// Performance Configuration
 export const PERFORMANCE_CONFIG = {
   DEBOUNCE_DELAY: 300,
   THROTTLE_DELAY: 100,
@@ -186,7 +168,6 @@ export const PERFORMANCE_CONFIG = {
   VIRTUAL_SCROLL_THRESHOLD: 1000
 };
 
-// Worfe Platform Information
 export const NASA_CHALLENGE = {
   year: 2025,
   theme: 'Will It Rain On My Parade?',
@@ -199,7 +180,6 @@ export const NASA_CHALLENGE = {
   challenge_url: 'https://www.spaceappschallenge.org/2025/challenges/will-it-rain-on-my-parade/'
 };
 
-// Data Attribution - Updated for Global Award Eligibility
 export const ATTRIBUTION = {
   nasa: {
     name: 'NASA POWER API',

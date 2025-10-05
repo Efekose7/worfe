@@ -9,7 +9,6 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Event types
   const eventTypes = useMemo(() => ({
     wedding: {
       name: "Wedding",
@@ -61,7 +60,6 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
     }
   }), []);
 
-  // Risk score calculation
   const calculateEventRiskScore = useCallback((weatherData, eventType) => {
     if (!weatherData || !weatherData.current) return { totalRisk: 100, recommendation: "No Data" };
 
@@ -69,19 +67,16 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
     let riskScore = 0;
     const current = weatherData.current;
 
-    // Precipitation risk
     if (current.precipitation > event.criticalFactors.rain.threshold) {
       const rainRisk = Math.min(100, (current.precipitation / event.criticalFactors.rain.threshold) * 100);
       riskScore += rainRisk * event.criticalFactors.rain.weight;
     }
 
-    // Wind risk
     if (current.wind_speed_10m > event.criticalFactors.wind.threshold) {
       const windRisk = Math.min(100, (current.wind_speed_10m / event.criticalFactors.wind.threshold) * 100);
       riskScore += windRisk * event.criticalFactors.wind.weight;
     }
 
-    // Temperature risk
     const [minTemp, maxTemp] = event.criticalFactors.temp.range;
     if (current.temperature_2m < minTemp || current.temperature_2m > maxTemp) {
       const tempRisk = current.temperature_2m < minTemp
@@ -98,7 +93,6 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
     };
   }, [eventTypes]);
 
-  // Calculate alternative dates
   const calculateAlternatives = useCallback(async () => {
     if (!selectedLocation || !selectedEvent) return;
 
@@ -109,7 +103,6 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
       const alternatives = [];
       const startDate = new Date(selectedDate);
       
-      // Check ±14 days around the selected date
       for (let i = -14; i <= 14; i++) {
         if (i === 0) continue; // Skip original date
         
@@ -137,7 +130,6 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
         }
       }
 
-      // Sort by risk score (lowest first)
       const sortedAlternatives = alternatives
         .sort((a, b) => a.riskScore - b.riskScore)
         .slice(0, 5); // Top 5 alternatives

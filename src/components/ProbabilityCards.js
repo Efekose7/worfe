@@ -106,7 +106,6 @@ const ProbabilityCard = ({
 const ProbabilityCards = () => {
   const { probabilities, thresholds, loading } = useWeather();
 
-  // Debug logging
   console.log('=== ProbabilityCards DEBUG ===');
   console.log('probabilities:', probabilities);
   console.log('thresholds:', thresholds);
@@ -119,7 +118,6 @@ const ProbabilityCards = () => {
   }
   console.log('=== END ProbabilityCards DEBUG ===');
 
-  // Show loading state while data is being fetched
   if (loading) {
     return (
       <div className="card p-6 text-center">
@@ -130,7 +128,6 @@ const ProbabilityCards = () => {
     );
   }
 
-  // Only show "No Data" if loading is false AND no probabilities
   if (!loading && !probabilities) {
     return (
       <div className="card p-6 text-center">
@@ -141,7 +138,6 @@ const ProbabilityCards = () => {
     );
   }
 
-  // If still loading or no probabilities, show loading
   if (!probabilities) {
     return (
       <div className="card p-6 text-center">
