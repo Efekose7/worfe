@@ -202,7 +202,7 @@ export function WeatherProvider({ children }) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.thresholds]);
+  }, [state.thresholds, state.settings]);
 
   const setLocation = (location) => {
     dispatch({ type: 'SET_LOCATION', payload: location });

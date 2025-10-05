@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Calendar, Clock, Thermometer, Droplets, Wind, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
 import { weatherService } from '../services/weatherService';
@@ -10,7 +10,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
   const [error, setError] = useState(null);
 
   // Etkinlik türleri
-  const eventTypes = {
+  const eventTypes = useMemo(() => ({
     wedding: {
       name: "Düğün",
       criticalFactors: {
@@ -59,10 +59,10 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
       },
       icon: "🎉"
     }
-  };
+  }), []);
 
   // Risk skoru hesaplama
-  const calculateEventRiskScore = (weatherData, eventType) => {
+  const calculateEventRiskScore = useCallback((weatherData, eventType) => {
     if (!weatherData || !weatherData.current) return { totalRisk: 100, recommendation: "Veri yok" };
 
     const event = eventTypes[eventType];
@@ -100,7 +100,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
                      riskScore < 60 ? "Kabul Edilebilir ⚠️" :
                      "Önerilmez ❌"
     };
-  };
+  }, [eventTypes]);
 
   // Alternatif tarihleri hesapla
   const calculateAlternatives = useCallback(async () => {
@@ -180,7 +180,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
     } finally {
       setLoading(false);
     }
-  }, [selectedLocation, selectedEvent, selectedDate]);
+  }, [selectedLocation, selectedEvent, selectedDate, calculateEventRiskScore]);
 
   useEffect(() => {
     if (selectedLocation && selectedEvent) {
