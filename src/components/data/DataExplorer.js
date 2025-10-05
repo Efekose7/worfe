@@ -24,7 +24,7 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
     console.log('historicalData.nasaData:', historicalData.nasaData);
     
     // NASA POWER verisi yapısını kontrol et - farklı yapıları dene
-    let nasaData = historicalData.parameters || historicalData.rawData || historicalData.nasaData;
+    let nasaData = historicalData.nasa_compliance_data || historicalData.parameters || historicalData.rawData;
     
     if (!nasaData) {
       console.log('No NASA parameters found in historicalData, trying alternative structure...');
@@ -35,8 +35,13 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
     console.log('Found NASA data:', nasaData);
     console.log('NASA data keys:', Object.keys(nasaData));
     
+    // NASA POWER verisi yapısını kontrol et
+    let parameters = nasaData.parameters || nasaData;
+    console.log('Parameters data:', parameters);
+    console.log('Parameters keys:', Object.keys(parameters));
+    
     // T2M verisini al ve işle
-    const t2mData = nasaData.T2M || {};
+    const t2mData = parameters.T2M || {};
     console.log('T2M data sample:', Object.entries(t2mData).slice(0, 3));
     console.log('T2M data length:', Object.keys(t2mData).length);
     
@@ -53,9 +58,9 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
           month: dateObj.getMonth() + 1,
           day: dateObj.getDate(),
           temperature: value,
-          precipitation: nasaData.PRECTOTCORR?.[date] || 0,
-          windSpeed: (nasaData.WS2M?.[date] || 0) * 3.6, // m/s to km/h
-          humidity: nasaData.RH2M?.[date] || 0
+          precipitation: parameters.PRECTOTCORR?.[date] || 0,
+          windSpeed: (parameters.WS2M?.[date] || 0) * 3.6, // m/s to km/h
+          humidity: parameters.RH2M?.[date] || 0
         };
       });
     
