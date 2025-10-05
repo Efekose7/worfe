@@ -1152,12 +1152,23 @@ class WeatherService {
     };
   }
 
-  // Etkinlik risk skoru hesaplama
+  // Event risk score calculation
   calculateEventRiskScore(weatherData, eventType) {
     if (!weatherData || !weatherData.current) {
       return {
         totalRisk: 0,
-        recommendation: "Veri yok",
+        recommendation: "No Data",
+        details: [],
+        confidence: 0
+      };
+    }
+
+    // Validate that we have real weather data
+    const current = weatherData.current;
+    if (!current.temperature_2m || !current.precipitation || !current.wind_speed_10m) {
+      return {
+        totalRisk: 0,
+        recommendation: "Incomplete Data",
         details: [],
         confidence: 0
       };
@@ -1177,7 +1188,6 @@ class WeatherService {
 
     let riskScore = 0;
     const details = [];
-    const current = weatherData.current;
 
     // Yağış riski
     if (current.precipitation > event.criticalFactors.rain.threshold) {
@@ -1186,10 +1196,10 @@ class WeatherService {
       );
       riskScore += rainRisk * event.criticalFactors.rain.weight;
       details.push({
-        factor: "Yağış",
+        factor: "Precipitation",
         risk: Math.round(rainRisk),
         value: `${current.precipitation} mm`,
-        status: rainRisk > 70 ? "Yüksek Risk" : rainRisk > 40 ? "Orta Risk" : "Düşük Risk",
+        status: rainRisk > 70 ? "High Risk" : rainRisk > 40 ? "Medium Risk" : "Low Risk",
         weight: event.criticalFactors.rain.weight
       });
     }
@@ -1201,10 +1211,10 @@ class WeatherService {
       );
       riskScore += windRisk * event.criticalFactors.wind.weight;
       details.push({
-        factor: "Rüzgar",
+        factor: "Wind",
         risk: Math.round(windRisk),
         value: `${current.wind_speed_10m} km/h`,
-        status: windRisk > 70 ? "Yüksek Risk" : windRisk > 40 ? "Orta Risk" : "Düşük Risk",
+        status: windRisk > 70 ? "High Risk" : windRisk > 40 ? "Medium Risk" : "Low Risk",
         weight: event.criticalFactors.wind.weight
       });
     }
@@ -1217,10 +1227,10 @@ class WeatherService {
         : Math.min(100, ((current.temperature_2m - maxTemp) / 10) * 100);
       riskScore += tempRisk * event.criticalFactors.temp.weight;
       details.push({
-        factor: "Sıcaklık",
+        factor: "Temperature",
         risk: Math.round(tempRisk),
         value: `${current.temperature_2m}°C`,
-        status: tempRisk > 70 ? "Yüksek Risk" : tempRisk > 40 ? "Orta Risk" : "Düşük Risk",
+        status: tempRisk > 70 ? "High Risk" : tempRisk > 40 ? "Medium Risk" : "Low Risk",
         weight: event.criticalFactors.temp.weight
       });
     }
@@ -1230,9 +1240,9 @@ class WeatherService {
 
     return {
       totalRisk: Math.round(riskScore),
-      recommendation: riskScore < 30 ? "İdeal Koşullar ✅" :
-                     riskScore < 60 ? "Kabul Edilebilir ⚠️" :
-                     "Önerilmez ❌",
+      recommendation: riskScore < 30 ? "Ideal Conditions ✅" :
+                     riskScore < 60 ? "Acceptable ⚠️" :
+                     "Not Recommended ❌",
       details,
       confidence: Math.round(confidence),
       eventType: eventType,

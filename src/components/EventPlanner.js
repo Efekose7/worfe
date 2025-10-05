@@ -138,13 +138,23 @@ const calculateEventRiskScore = (weatherData, eventType) => {
 };
 
 const EventPlanner = () => {
-  const { selectedLocation, selectedDate, weatherData } = useWeather();
+  const { selectedLocation, selectedDate, weatherData, loading, error } = useWeather();
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showRiskAnalysis, setShowRiskAnalysis] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleEventSelect = (eventType) => {
     setSelectedEvent(eventType);
     setShowRiskAnalysis(true);
+    
+    // Start analysis if we have weather data
+    if (weatherData && weatherData.current) {
+      setIsAnalyzing(true);
+      // Simulate analysis time
+      setTimeout(() => {
+        setIsAnalyzing(false);
+      }, 2000);
+    }
   };
 
   const getRiskIcon = (risk) => {
@@ -210,7 +220,7 @@ const EventPlanner = () => {
       </div>
 
       {/* Risk Analysis */}
-      {selectedEvent && showRiskAnalysis && weatherData && (
+      {selectedEvent && showRiskAnalysis && (
         <div className="card p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
@@ -224,60 +234,107 @@ const EventPlanner = () => {
                 </p>
               </div>
             </div>
-            {getRiskIcon(calculateEventRiskScore(weatherData, selectedEvent).totalRisk)}
+            {weatherData && weatherData.current && !isAnalyzing && (
+              getRiskIcon(calculateEventRiskScore(weatherData, selectedEvent).totalRisk)
+            )}
           </div>
 
-          {/* Risk Score */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-400">Event Risk Score</span>
-              <span className="text-2xl font-bold text-white">
-                {calculateEventRiskScore(weatherData, selectedEvent).totalRisk}%
-              </span>
+          {/* Loading State */}
+          {isAnalyzing && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-earth-cyan mx-auto mb-4"></div>
+              <h4 className="text-lg font-semibold text-white mb-2">Analyzing Historical Data</h4>
+              <p className="text-white/70">Fetching historical weather patterns and calculating probabilities based on past data...</p>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-3">
-              <div 
-                className={`h-3 rounded-full ${getRiskColor(calculateEventRiskScore(weatherData, selectedEvent).totalRisk)} transition-all duration-500`}
-                style={{ width: `${calculateEventRiskScore(weatherData, selectedEvent).totalRisk}%` }}
-              />
-            </div>
-            <p className="text-center mt-2 text-lg font-semibold">
-              {calculateEventRiskScore(weatherData, selectedEvent).recommendation}
-            </p>
-          </div>
+          )}
 
-          {/* Detailed Risk Factors */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-400 uppercase">Risk Factors</h4>
-            {calculateEventRiskScore(weatherData, selectedEvent).details.map((detail, index) => (
-              <div key={index} className="bg-gray-800/50 rounded-lg p-3">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-white font-medium">{detail.factor}</span>
-                  <span className={`text-sm px-2 py-1 rounded ${
-                    detail.status === "High Risk" ? "bg-red-500/20 text-red-300" :
-                    detail.status === "Medium Risk" ? "bg-yellow-500/20 text-yellow-300" :
-                    "bg-green-500/20 text-green-300"
-                  }`}>
-                    {detail.status}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm">{detail.value}</span>
-                  <span className="text-white font-bold">{detail.risk}%</span>
+          {/* No Data State */}
+          {!weatherData && !loading && (
+            <div className="text-center py-8">
+              <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+              <h4 className="text-lg font-semibold text-white mb-2">No Weather Data Available</h4>
+              <p className="text-white/70">Please select a location and date to get weather analysis.</p>
+            </div>
+          )}
+
+          {/* Loading Weather Data */}
+          {loading && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-earth-cyan mx-auto mb-4"></div>
+              <h4 className="text-lg font-semibold text-white mb-2">Loading Weather Data</h4>
+              <p className="text-white/70">Fetching current weather conditions...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-6 h-6 text-red-400" />
+                <div>
+                  <h4 className="text-red-300 font-semibold">Error Loading Weather Data</h4>
+                  <p className="text-red-200 text-sm">{error}</p>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Confidence Level */}
-          <div className="mt-4 pt-4 border-t border-gray-700">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Prediction Confidence</span>
-              <span className="text-white font-semibold">
-                {calculateEventRiskScore(weatherData, selectedEvent).confidence}%
-              </span>
             </div>
-          </div>
+          )}
+
+          {/* Risk Analysis Results */}
+          {weatherData && weatherData.current && !isAnalyzing && (
+            <>
+              {/* Risk Score */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-400">Event Risk Score</span>
+                  <span className="text-2xl font-bold text-white">
+                    {calculateEventRiskScore(weatherData, selectedEvent).totalRisk}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-3">
+                  <div 
+                    className={`h-3 rounded-full ${getRiskColor(calculateEventRiskScore(weatherData, selectedEvent).totalRisk)} transition-all duration-500`}
+                    style={{ width: `${calculateEventRiskScore(weatherData, selectedEvent).totalRisk}%` }}
+                  />
+                </div>
+                <p className="text-center mt-2 text-lg font-semibold">
+                  {calculateEventRiskScore(weatherData, selectedEvent).recommendation}
+                </p>
+              </div>
+
+              {/* Detailed Risk Factors */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-gray-400 uppercase">Risk Factors</h4>
+                {calculateEventRiskScore(weatherData, selectedEvent).details.map((detail, index) => (
+                  <div key={index} className="bg-gray-800/50 rounded-lg p-3">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-white font-medium">{detail.factor}</span>
+                      <span className={`text-sm px-2 py-1 rounded ${
+                        detail.status === "High Risk" ? "bg-red-500/20 text-red-300" :
+                        detail.status === "Medium Risk" ? "bg-yellow-500/20 text-yellow-300" :
+                        "bg-green-500/20 text-green-300"
+                      }`}>
+                        {detail.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 text-sm">{detail.value}</span>
+                      <span className="text-white font-bold">{detail.risk}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Confidence Level */}
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Prediction Confidence</span>
+                  <span className="text-white font-semibold">
+                    {calculateEventRiskScore(weatherData, selectedEvent).confidence}%
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
