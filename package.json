@@ -2,7 +2,7 @@
   "name": "worfe",
   "version": "1.0.0",
   "description": "Worfe - Event Weather Planning Dashboard",
-  "homepage": "https://efekose7.github.io/worfe",
+  "homepage": ".",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
