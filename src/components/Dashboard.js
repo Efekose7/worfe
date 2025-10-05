@@ -11,6 +11,7 @@ const Dashboard = () => {
     selectedLocation, 
     probabilities, 
     weatherData,
+    historicalData,
     loading, 
     error 
   } = useWeather();
@@ -100,7 +101,8 @@ const Dashboard = () => {
       {/* Interactive NASA Data Explorer */}
       <DataExplorer 
         location={selectedLocation} 
-        weatherData={weatherData} 
+        weatherData={weatherData}
+        historicalData={historicalData}
       />
 
       {/* Weather Charts */}

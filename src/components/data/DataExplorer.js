@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Database, Activity, Calendar } from 'lucide-react';
 
-const DataExplorer = ({ location, weatherData }) => {
+const DataExplorer = ({ location, weatherData, historicalData }) => {
   const [yearRange, setYearRange] = useState([2014, 2024]);
   const [selectedMetric, setSelectedMetric] = useState('temperature');
   const [showTrend, setShowTrend] = useState(true);
@@ -10,10 +10,29 @@ const DataExplorer = ({ location, weatherData }) => {
 
   // VERİ İŞLEME - Gerçek NASA verisini kullan
   const processedData = useMemo(() => {
-    if (!weatherData) return [];
+    if (!historicalData) {
+      console.log('=== DataExplorer DEBUG ===');
+      console.log('No historicalData available');
+      return [];
+    }
     
-    // weatherData'dan yearRange aralığındaki verileri filtrele
-    return Object.entries(weatherData.parameters?.T2M || {})
+    console.log('=== DataExplorer DEBUG ===');
+    console.log('historicalData:', historicalData);
+    console.log('historicalData.parameters:', historicalData.parameters);
+    
+    // NASA POWER verisi yapısını kontrol et
+    const nasaData = historicalData.parameters;
+    if (!nasaData) {
+      console.log('No NASA parameters found in historicalData');
+      return [];
+    }
+    
+    // T2M verisini al ve işle
+    const t2mData = nasaData.T2M || {};
+    console.log('T2M data sample:', Object.entries(t2mData).slice(0, 3));
+    console.log('T2M data length:', Object.keys(t2mData).length);
+    
+    const filteredData = Object.entries(t2mData)
       .filter(([date]) => {
         const year = parseInt(date.substring(0, 4));
         return year >= yearRange[0] && year <= yearRange[1];
@@ -26,12 +45,17 @@ const DataExplorer = ({ location, weatherData }) => {
           month: dateObj.getMonth() + 1,
           day: dateObj.getDate(),
           temperature: value,
-          precipitation: weatherData.parameters?.PRECTOT?.[date] || 0,
-          windSpeed: weatherData.parameters?.WS2M?.[date] || 0,
-          humidity: weatherData.parameters?.RH2M?.[date] || 0
+          precipitation: nasaData.PRECTOTCORR?.[date] || 0,
+          windSpeed: (nasaData.WS2M?.[date] || 0) * 3.6, // m/s to km/h
+          humidity: nasaData.RH2M?.[date] || 0
         };
       });
-  }, [weatherData, yearRange]);
+    
+    console.log('Filtered data length:', filteredData.length);
+    console.log('Sample filtered data:', filteredData.slice(0, 3));
+    
+    return filteredData;
+  }, [historicalData, yearRange]);
 
   // İSTATİSTİKSEL HESAPLAMALAR
   const statistics = useMemo(() => {
@@ -107,15 +131,15 @@ const DataExplorer = ({ location, weatherData }) => {
   const currentMetric = getMetricLabel(selectedMetric);
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+    <div className="card p-8 mb-8">
       {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Database className="w-8 h-8 text-blue-600" />
+          <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+            <Database className="w-8 h-8 text-earth-cyan" />
             NASA Data Explorer
           </h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-white/70 mt-1">
             Interactive analysis of {yearRange[1] - yearRange[0]} years of NASA POWER data
           </p>
         </div>
@@ -123,9 +147,9 @@ const DataExplorer = ({ location, weatherData }) => {
       </div>
 
       {/* YEAR RANGE SLIDER */}
-      <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          <Calendar className="inline w-4 h-4 mr-2" />
+      <div className="mb-6 p-4 bg-gradient-to-r from-nasa-blue/20 to-earth-cyan/20 rounded-lg border border-nasa-blue/30">
+        <label className="block text-sm font-semibold text-white mb-2">
+          <Calendar className="inline w-4 h-4 mr-2 text-earth-cyan" />
           Analysis Period: {yearRange[0]} - {yearRange[1]} ({yearRange[1] - yearRange[0]} years)
         </label>
         <input 
@@ -134,11 +158,11 @@ const DataExplorer = ({ location, weatherData }) => {
           max="2024" 
           value={yearRange[1]}
           onChange={(e) => setYearRange([2014, parseInt(e.target.value)])}
-          className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+          className="w-full h-2 bg-gradient-to-r from-nasa-blue to-earth-cyan rounded-lg appearance-none cursor-pointer slider"
         />
-        <div className="flex justify-between text-xs text-gray-600 mt-1">
+        <div className="flex justify-between text-xs text-white/70 mt-1">
           <span>2014 (Min)</span>
-          <span className="font-semibold">
+          <span className="font-semibold text-earth-cyan">
             Sample Size: {statistics?.sampleSize || 0} days
           </span>
           <span>2024 (Max)</span>
@@ -147,7 +171,7 @@ const DataExplorer = ({ location, weatherData }) => {
 
       {/* METRIC SELECTOR */}
       <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">
+        <label className="block text-sm font-semibold text-white mb-3">
           Select Weather Parameter
         </label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -159,8 +183,8 @@ const DataExplorer = ({ location, weatherData }) => {
                 onClick={() => setSelectedMetric(metric)}
                 className={`p-4 rounded-lg font-semibold transition-all ${
                   selectedMetric === metric
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-nasa-blue to-earth-cyan text-white shadow-lg scale-105 border-2 border-earth-cyan'
+                    : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
                 }`}
               >
                 <span className="text-2xl block mb-1">{info.icon}</span>
@@ -219,23 +243,23 @@ const DataExplorer = ({ location, weatherData }) => {
             type="checkbox" 
             checked={showTrend}
             onChange={(e) => setShowTrend(e.target.checked)}
-            className="w-4 h-4"
+            className="w-4 h-4 text-earth-cyan bg-transparent border-2 border-earth-cyan rounded focus:ring-earth-cyan"
           />
-          <span className="text-sm font-medium text-gray-700">Show Trend Line</span>
+          <span className="text-sm font-medium text-white">Show Trend Line</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input 
             type="checkbox" 
             checked={showConfidenceInterval}
             onChange={(e) => setShowConfidenceInterval(e.target.checked)}
-            className="w-4 h-4"
+            className="w-4 h-4 text-earth-cyan bg-transparent border-2 border-earth-cyan rounded focus:ring-earth-cyan"
           />
-          <span className="text-sm font-medium text-gray-700">Show 95% Confidence Interval</span>
+          <span className="text-sm font-medium text-white">Show 95% Confidence Interval</span>
         </label>
       </div>
 
       {/* INTERACTIVE CHART */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-gradient-to-br from-deep-space/50 to-nasa-blue/20 rounded-lg p-4 border border-nasa-blue/30">
         <ResponsiveContainer width="100%" height={400}>
           <AreaChart data={dataWithTrend}>
             <defs>
@@ -246,18 +270,25 @@ const DataExplorer = ({ location, weatherData }) => {
             </defs>
             <XAxis 
               dataKey="date" 
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 10, fill: '#ffffff' }}
               tickFormatter={(date) => new Date(date).getFullYear()}
             />
             <YAxis 
-              label={{ value: currentMetric.label, angle: -90, position: 'insideLeft' }}
+              label={{ value: currentMetric.label, angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#ffffff' } }}
+              tick={{ fill: '#ffffff' }}
             />
             <Tooltip 
-              contentStyle={{ backgroundColor: 'white', border: '2px solid #3b82f6', borderRadius: '8px' }}
+              contentStyle={{ 
+                backgroundColor: '#0B3D91', 
+                border: '2px solid #4CC9F0', 
+                borderRadius: '8px',
+                color: '#ffffff'
+              }}
+              labelStyle={{ color: '#ffffff' }}
               labelFormatter={(date) => new Date(date).toLocaleDateString()}
               formatter={(value) => [`${value.toFixed(2)}${selectedMetric === 'temperature' ? '°C' : selectedMetric === 'humidity' ? '%' : selectedMetric === 'precipitation' ? 'mm' : 'km/h'}`, currentMetric.label]}
             />
-            <Legend />
+            <Legend wrapperStyle={{ color: '#ffffff' }} />
             
             {/* Main data line */}
             <Area 
@@ -274,7 +305,7 @@ const DataExplorer = ({ location, weatherData }) => {
               <Line 
                 type="monotone" 
                 dataKey="trend" 
-                stroke="#dc2626" 
+                stroke="#4CC9F0" 
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
@@ -287,38 +318,38 @@ const DataExplorer = ({ location, weatherData }) => {
 
       {/* CONFIDENCE INTERVAL VISUALIZATION */}
       {statistics && showConfidenceInterval && (
-        <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
-          <h4 className="font-bold text-lg mb-4 text-gray-900 flex items-center gap-2">
-            <Activity className="w-5 h-5" />
+        <div className="mt-6 p-6 bg-gradient-to-r from-nasa-blue/20 to-earth-cyan/20 rounded-lg border-2 border-nasa-blue/50">
+          <h4 className="font-bold text-lg mb-4 text-white flex items-center gap-2">
+            <Activity className="w-5 h-5 text-earth-cyan" />
             95% Confidence Interval
           </h4>
           <div className="relative">
             <div className="flex items-center gap-4">
-              <div className="flex-1 h-12 bg-gradient-to-r from-blue-200 via-blue-500 to-blue-200 rounded-lg relative shadow-lg">
+              <div className="flex-1 h-12 bg-gradient-to-r from-nasa-blue via-earth-cyan to-nasa-blue rounded-lg relative shadow-lg">
                 {/* Lower bound */}
-                <div className="absolute left-0 -top-8 text-sm font-semibold text-blue-700">
+                <div className="absolute left-0 -top-8 text-sm font-semibold text-earth-cyan">
                   Lower: {statistics.confidenceInterval.lower}
                   {selectedMetric === 'temperature' ? '°C' : selectedMetric === 'humidity' ? '%' : selectedMetric === 'precipitation' ? 'mm' : 'km/h'}
                 </div>
                 {/* Mean */}
-                <div className="absolute left-1/2 -translate-x-1/2 -top-8 text-sm font-bold text-blue-900">
+                <div className="absolute left-1/2 -translate-x-1/2 -top-8 text-sm font-bold text-white">
                   Mean: {statistics.mean}
                   {selectedMetric === 'temperature' ? '°C' : selectedMetric === 'humidity' ? '%' : selectedMetric === 'precipitation' ? 'mm' : 'km/h'}
                 </div>
                 {/* Upper bound */}
-                <div className="absolute right-0 -top-8 text-sm font-semibold text-blue-700">
+                <div className="absolute right-0 -top-8 text-sm font-semibold text-earth-cyan">
                   Upper: {statistics.confidenceInterval.upper}
                   {selectedMetric === 'temperature' ? '°C' : selectedMetric === 'humidity' ? '%' : selectedMetric === 'precipitation' ? 'mm' : 'km/h'}
                 </div>
                 {/* Mean indicator */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-0 w-1 h-12 bg-blue-900"></div>
+                <div className="absolute left-1/2 -translate-x-1/2 top-0 w-1 h-12 bg-white"></div>
               </div>
             </div>
-            <p className="text-sm text-gray-700 mt-4 text-center">
-              <span className="font-semibold">{statistics.reliability}% Reliability</span> - 
+            <p className="text-sm text-white/80 mt-4 text-center">
+              <span className="font-semibold text-earth-cyan">{statistics.reliability}% Reliability</span> - 
               Based on {statistics.sampleSize} days of NASA POWER data ({yearRange[1] - yearRange[0]} years)
             </p>
-            <p className="text-xs text-gray-600 mt-2 text-center italic">
+            <p className="text-xs text-white/60 mt-2 text-center italic">
               95% of historical values fall within this range (±1.96σ from mean)
             </p>
           </div>
@@ -359,15 +390,15 @@ const DataExplorer = ({ location, weatherData }) => {
 
 const StatCard = ({ title, value, subtitle, icon, color }) => {
   const colorClasses = {
-    blue: 'from-blue-500 to-blue-600',
+    blue: 'from-nasa-blue to-nasa-blue/80',
     green: 'from-green-500 to-green-600',
-    cyan: 'from-cyan-500 to-cyan-600',
+    cyan: 'from-earth-cyan to-earth-cyan/80',
     red: 'from-red-500 to-red-600',
     purple: 'from-purple-500 to-purple-600'
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-lg p-4 text-white shadow-lg`}>
+    <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-lg p-4 text-white shadow-lg border border-white/20`}>
       <div className="text-3xl mb-2">{icon}</div>
       <div className="text-xs opacity-90 uppercase tracking-wide">{title}</div>
       <div className="text-2xl font-bold my-1">{value}</div>
@@ -378,16 +409,16 @@ const StatCard = ({ title, value, subtitle, icon, color }) => {
 
 const PercentileCard = ({ title, value, unit, description, color }) => {
   const colorClasses = {
-    blue: 'border-blue-500 bg-blue-50',
-    purple: 'border-purple-500 bg-purple-50',
-    pink: 'border-pink-500 bg-pink-50'
+    blue: 'border-nasa-blue bg-nasa-blue/10',
+    purple: 'border-purple-500 bg-purple-500/10',
+    pink: 'border-pink-500 bg-pink-500/10'
   };
 
   return (
-    <div className={`border-2 ${colorClasses[color]} rounded-lg p-4`}>
-      <h5 className="font-semibold text-gray-900 mb-2">{title}</h5>
-      <p className="text-3xl font-bold text-gray-900">{value}{unit}</p>
-      <p className="text-sm text-gray-600 mt-1">{description}</p>
+    <div className={`border-2 ${colorClasses[color]} rounded-lg p-4 bg-gradient-to-br from-white/5 to-white/10`}>
+      <h5 className="font-semibold text-white mb-2">{title}</h5>
+      <p className="text-3xl font-bold text-white">{value}{unit}</p>
+      <p className="text-sm text-white/70 mt-1">{description}</p>
     </div>
   );
 };
@@ -400,21 +431,21 @@ const DataQualityBadge = ({ years, location }) => {
 
   const colors = {
     green: {
-      bg: 'bg-green-50',
+      bg: 'bg-green-500/20',
       border: 'border-green-500',
-      text: 'text-green-700',
+      text: 'text-green-400',
       dot: 'bg-green-500'
     },
     blue: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-500',
-      text: 'text-blue-700',
-      dot: 'bg-blue-500'
+      bg: 'bg-nasa-blue/20',
+      border: 'border-nasa-blue',
+      text: 'text-nasa-blue',
+      dot: 'bg-nasa-blue'
     },
     yellow: {
-      bg: 'bg-yellow-50',
+      bg: 'bg-yellow-500/20',
       border: 'border-yellow-500',
-      text: 'text-yellow-700',
+      text: 'text-yellow-400',
       dot: 'bg-yellow-500'
     }
   };
