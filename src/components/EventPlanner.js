@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
 
 // Event types and critical factors
@@ -138,7 +138,7 @@ const calculateEventRiskScore = (weatherData, eventType) => {
 };
 
 const EventPlanner = () => {
-  const { selectedLocation, selectedDate, weatherData, loading, error } = useWeather();
+  const { weatherData, loading, error } = useWeather();
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showRiskAnalysis, setShowRiskAnalysis] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -172,29 +172,6 @@ const EventPlanner = () => {
 
   return (
     <div className="space-y-6">
-      {/* Location and Date Selection */}
-      <div className="card p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <MapPin className="w-8 h-8 text-earth-cyan" />
-          <div>
-            <h2 className="text-2xl font-bold text-white">Location & Date</h2>
-            <p className="text-white/70">Select your event location and date</p>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 p-4 bg-white/10 rounded-lg">
-            <MapPin className="w-5 h-5 text-earth-cyan" />
-            <span className="text-white">
-              {selectedLocation ? `${selectedLocation.name}, ${selectedLocation.country}` : 'Select location'}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 p-4 bg-white/10 rounded-lg">
-            <Calendar className="w-4 h-4" />
-            <span>{selectedDate || 'Select date'}</span>
-          </div>
-        </div>
-      </div>
 
       {/* Event Type Selection */}
       <div className="card p-6">
