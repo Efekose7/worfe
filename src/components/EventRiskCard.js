@@ -16,21 +16,21 @@ const EventRiskCard = ({ eventType, riskData, weatherData }) => {
     return <AlertTriangle className="w-12 h-12 text-red-500" />;
   };
 
-  const getTrendIcon = (trend) => {
-    if (trend.includes('↑↑')) return <TrendingUp className="w-4 h-4 text-red-400" />;
-    if (trend.includes('↑')) return <TrendingUp className="w-4 h-4 text-orange-400" />;
-    if (trend.includes('↓↓')) return <TrendingDown className="w-4 h-4 text-blue-400" />;
-    if (trend.includes('↓')) return <TrendingDown className="w-4 h-4 text-cyan-400" />;
-    return <Minus className="w-4 h-4 text-white/60" />;
-  };
+  // const getTrendIcon = (trend) => {
+  //   if (trend.includes('↑↑')) return <TrendingUp className="w-4 h-4 text-red-400" />;
+  //   if (trend.includes('↑')) return <TrendingUp className="w-4 h-4 text-orange-400" />;
+  //   if (trend.includes('↓↓')) return <TrendingDown className="w-4 h-4 text-blue-400" />;
+  //   if (trend.includes('↓')) return <TrendingDown className="w-4 h-4 text-cyan-400" />;
+  //   return <Minus className="w-4 h-4 text-white/60" />;
+  // };
 
-  const getTrendColor = (trend) => {
-    if (trend.includes('↑↑')) return 'text-red-400';
-    if (trend.includes('↑')) return 'text-orange-400';
-    if (trend.includes('↓↓')) return 'text-blue-400';
-    if (trend.includes('↓')) return 'text-cyan-400';
-    return 'text-white/60';
-  };
+  // const getTrendColor = (trend) => {
+  //   if (trend.includes('↑↑')) return 'text-red-400';
+  //   if (trend.includes('↑')) return 'text-orange-400';
+  //   if (trend.includes('↓↓')) return 'text-blue-400';
+  //   if (trend.includes('↓')) return 'text-cyan-400';
+  //   return 'text-white/60';
+  // };
 
   // Etkinlik türleri
   const eventTypes = {

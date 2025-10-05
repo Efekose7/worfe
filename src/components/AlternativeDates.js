@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, TrendingUp, Clock, Thermometer, Droplets, Wind, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, Thermometer, Droplets, Wind, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
 import { weatherService } from '../services/weatherService';
 
@@ -186,7 +186,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
     if (selectedLocation && selectedEvent) {
       calculateAlternatives();
     }
-  }, [selectedLocation, selectedEvent, selectedDate]);
+  }, [selectedLocation, selectedEvent, selectedDate, calculateAlternatives]);
 
   const getRiskColor = (risk) => {
     if (risk < 30) return 'text-green-400';

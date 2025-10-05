@@ -18,9 +18,9 @@ function App() {
     setShowLanding(false);
   };
 
-  const handleEventSelect = (eventType) => {
-    setSelectedEvent(eventType);
-  };
+  // const handleEventSelect = (eventType) => {
+  //   setSelectedEvent(eventType);
+  // };
 
   const handleDateChange = (newDate) => {
     // Date change logic will be handled by WeatherContext
