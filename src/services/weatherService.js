@@ -3416,6 +3416,62 @@ class WeatherService {
       recommendations: []
     };
   }
+
+  // Export to CSV
+  exportToCSV(weatherData, probabilities, location) {
+    const csvData = [];
+    
+    // Header
+    csvData.push('Date,Location,Temperature,Precipitation,Wind Speed,Humidity,Probability');
+    
+    // Add current weather data
+    if (weatherData && weatherData.current) {
+      csvData.push([
+        new Date().toISOString().split('T')[0],
+        location.name,
+        weatherData.current.temperature_2m || 'N/A',
+        weatherData.current.precipitation || 'N/A',
+        weatherData.current.wind_speed_10m || 'N/A',
+        weatherData.current.relative_humidity_2m || 'N/A',
+        'Current'
+      ].join(','));
+    }
+    
+    // Add probability data
+    if (probabilities && probabilities.probabilities) {
+      Object.entries(probabilities.probabilities).forEach(([key, value]) => {
+        csvData.push([
+          new Date().toISOString().split('T')[0],
+          location.name,
+          'N/A',
+          'N/A',
+          'N/A',
+          'N/A',
+          `${key}: ${value}%`
+        ].join(','));
+      });
+    }
+    
+    return csvData.join('\n');
+  }
+
+  // Export to JSON
+  exportToJSON(weatherData, probabilities, location) {
+    return {
+      location: {
+        name: location.name,
+        latitude: location.lat,
+        longitude: location.lng,
+        country: location.country || 'Unknown'
+      },
+      currentWeather: weatherData?.current || null,
+      probabilities: probabilities?.probabilities || {},
+      climateTrends: probabilities?.climateTrends || {},
+      analysisDate: new Date().toISOString(),
+      dataSource: 'NASA POWER API + Open-Meteo',
+      totalDays: probabilities?.totalDays || 0
+    };
+  }
 }
 
 export const weatherService = new WeatherService();
