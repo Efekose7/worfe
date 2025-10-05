@@ -196,11 +196,11 @@ const Controls = () => {
 
         {!showSettings && (
           <div className="space-y-2 text-sm text-white/70">
-            <div>🌡️ Hot: &gt;{thresholds.veryHot}°C</div>
-            <div>❄️ Cold: &lt;{thresholds.veryCold}°C</div>
-            <div>💨 Windy: &gt;{thresholds.veryWindy} km/h</div>
-            <div>🌧️ Wet: &gt;{thresholds.veryWet} mm/day</div>
-            <div>😰 Uncomfortable: &gt;{thresholds.veryUncomfortable}°C heat index</div>
+            <div>Hot: &gt;{thresholds.veryHot}°C</div>
+            <div>Cold: &lt;{thresholds.veryCold}°C</div>
+            <div>Windy: &gt;{thresholds.veryWindy} km/h</div>
+            <div>Wet: &gt;{thresholds.veryWet} mm/day</div>
+            <div>Uncomfortable: &gt;{thresholds.veryUncomfortable}°C heat index</div>
           </div>
         )}
       </div>

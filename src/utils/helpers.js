@@ -74,14 +74,14 @@ export const getWeatherCondition = (code) => {
 
 // Get weather icon based on condition
 export const getWeatherIcon = (code) => {
-  if (code === 0 || code === 1) return '☀️';
-  if (code === 2 || code === 3) return '⛅';
-  if (code >= 45 && code <= 48) return '🌫️';
-  if (code >= 51 && code <= 67) return '🌧️';
-  if (code >= 71 && code <= 77) return '❄️';
-  if (code >= 80 && code <= 86) return '🌦️';
-  if (code >= 95 && code <= 99) return '⛈️';
-  return '🌤️';
+  if (code === 0 || code === 1) return 'Clear';
+  if (code === 2 || code === 3) return 'Cloudy';
+  if (code >= 45 && code <= 48) return 'Fog';
+  if (code >= 51 && code <= 67) return 'Rain';
+  if (code >= 71 && code <= 77) return 'Snow';
+  if (code >= 80 && code <= 86) return 'Showers';
+  if (code >= 95 && code <= 99) return 'Thunderstorm';
+  return 'Partly Cloudy';
 };
 
 // Format date for display
