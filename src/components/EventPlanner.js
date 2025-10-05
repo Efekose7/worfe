@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, AlertTriangle, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
+import { Calendar, MapPin, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
-import StatisticalAnalysis from './StatisticalAnalysis';
-import { weatherService } from '../services/weatherService';
 
 // Event types and critical factors
 const eventTypes = {
@@ -144,8 +142,6 @@ const EventPlanner = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showRiskAnalysis, setShowRiskAnalysis] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showStatisticalAnalysis, setShowStatisticalAnalysis] = useState(false);
-  const [statisticalData, setStatisticalData] = useState(null);
 
   const handleEventSelect = (eventType) => {
     setSelectedEvent(eventType);
@@ -161,49 +157,6 @@ const EventPlanner = () => {
     }
   };
 
-  const handleStatisticalAnalysis = async () => {
-    if (!selectedLocation || !selectedDate || !selectedEvent) {
-      console.log('Missing required data:', { selectedLocation, selectedDate, selectedEvent });
-      return;
-    }
-    
-    setShowStatisticalAnalysis(true);
-    setIsAnalyzing(true);
-    
-    try {
-      console.log('Starting statistical analysis...', {
-        location: selectedLocation,
-        date: selectedDate,
-        event: selectedEvent
-      });
-      
-      // Get historical data for statistical analysis
-      const historicalData = await weatherService.getHistoricalWeather(
-        selectedLocation.latitude,
-        selectedLocation.longitude,
-        selectedDate,
-        20, // 20 years of data
-        7   // 7-day window
-      );
-      
-      console.log('Historical data received:', historicalData);
-      
-      // Calculate advanced statistics
-      const stats = weatherService.calculateAdvancedStatistics(
-        historicalData,
-        selectedDate,
-        selectedEvent
-      );
-      
-      console.log('Statistical analysis completed:', stats);
-      setStatisticalData(stats);
-    } catch (error) {
-      console.error('Error calculating statistical analysis:', error);
-      setStatisticalData(null);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
 
   const getRiskIcon = (risk) => {
     if (risk < 30) return <CheckCircle className="w-12 h-12 text-green-500" />;
@@ -382,31 +335,11 @@ const EventPlanner = () => {
                         </div>
                       </div>
 
-                      {/* Statistical Analysis Button */}
-                      <div className="mt-6 pt-6 border-t border-gray-700">
-                        <button
-                          onClick={handleStatisticalAnalysis}
-                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2"
-                        >
-                          <BarChart3 className="w-5 h-5" />
-                          Advanced Statistical Analysis
-                        </button>
-                      </div>
                     </>
                   )}
                 </div>
               )}
 
-              {/* Statistical Analysis Section */}
-              {showStatisticalAnalysis && (
-                <div className="mt-8">
-                  <StatisticalAnalysis 
-                    statisticalData={statisticalData}
-                    eventType={selectedEvent}
-                    isLoading={isAnalyzing}
-                  />
-                </div>
-              )}
             </div>
           );
         };
