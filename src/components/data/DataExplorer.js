@@ -40,8 +40,29 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
     console.log('Parameters data:', parameters);
     console.log('Parameters keys:', Object.keys(parameters));
     
-    // T2M verisini al ve işle
-    const t2mData = parameters.T2M || {};
+    // NASA POWER verisi yapısını detaylı kontrol et
+    console.log('NASA data structure analysis:');
+    console.log('- nasaData.parameters:', nasaData.parameters);
+    console.log('- nasaData.rawData:', nasaData.rawData);
+    console.log('- nasaData.data:', nasaData.data);
+    console.log('- nasaData.T2M:', nasaData.T2M);
+    
+    // Farklı yapıları dene
+    let t2mData = {};
+    if (parameters.T2M) {
+      t2mData = parameters.T2M;
+      console.log('Found T2M in parameters');
+    } else if (nasaData.T2M) {
+      t2mData = nasaData.T2M;
+      console.log('Found T2M in nasaData');
+    } else if (nasaData.rawData && nasaData.rawData.T2M) {
+      t2mData = nasaData.rawData.T2M;
+      console.log('Found T2M in nasaData.rawData');
+    } else {
+      console.log('T2M not found, trying alternative structure...');
+      console.log('Full nasaData structure:', JSON.stringify(nasaData, null, 2));
+    }
+    
     console.log('T2M data sample:', Object.entries(t2mData).slice(0, 3));
     console.log('T2M data length:', Object.keys(t2mData).length);
     
@@ -52,15 +73,38 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
       })
       .map(([date, value]) => {
         const dateObj = new Date(date);
+        // Diğer parametreleri de aynı şekilde bul
+        let precipitation = 0;
+        let windSpeed = 0;
+        let humidity = 0;
+        
+        if (parameters.PRECTOTCORR) {
+          precipitation = parameters.PRECTOTCORR[date] || 0;
+        } else if (nasaData.PRECTOTCORR) {
+          precipitation = nasaData.PRECTOTCORR[date] || 0;
+        }
+        
+        if (parameters.WS2M) {
+          windSpeed = (parameters.WS2M[date] || 0) * 3.6; // m/s to km/h
+        } else if (nasaData.WS2M) {
+          windSpeed = (nasaData.WS2M[date] || 0) * 3.6;
+        }
+        
+        if (parameters.RH2M) {
+          humidity = parameters.RH2M[date] || 0;
+        } else if (nasaData.RH2M) {
+          humidity = nasaData.RH2M[date] || 0;
+        }
+        
         return {
           date,
           year: dateObj.getFullYear(),
           month: dateObj.getMonth() + 1,
           day: dateObj.getDate(),
           temperature: value,
-          precipitation: parameters.PRECTOTCORR?.[date] || 0,
-          windSpeed: (parameters.WS2M?.[date] || 0) * 3.6, // m/s to km/h
-          humidity: parameters.RH2M?.[date] || 0
+          precipitation,
+          windSpeed,
+          humidity
         };
       });
     
