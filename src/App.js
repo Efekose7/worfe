@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LandingPage from './components/LandingPage';
 import Header from './components/Header';
 import EventPlanner from './components/EventPlanner';
 import EventRiskCard from './components/EventRiskCard';
@@ -11,11 +12,24 @@ import { WeatherProvider } from './context/WeatherContext';
 
 function App() {
   const [selectedEvent] = useState(null);
+  const [showLanding, setShowLanding] = useState(true);
 
   const handleDateChange = (newDate) => {
     // Date change logic will be handled by WeatherContext
     console.log('Date changed to:', newDate);
   };
+
+  const handleStartAnalysis = () => {
+    setShowLanding(false);
+  };
+
+  if (showLanding) {
+    return (
+      <div>
+        <LandingPage onStartAnalysis={handleStartAnalysis} />
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
