@@ -33,8 +33,8 @@ const DataProvenance = () => {
             <Award className="w-4 h-4 text-white" />
           </div>
           <h3 className="text-xl font-bold text-white">NASA POWER API (Primary Data Source)</h3>
-          <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-semibold">
-            Global Award Eligible
+          <span className="px-3 py-1 bg-nasa-blue/20 text-nasa-blue rounded-full text-sm font-semibold">
+            NASA Data Source
           </span>
         </div>
 
@@ -255,9 +255,9 @@ const DataProvenance = () => {
       <div className="mt-6 pt-4 border-t border-white/20">
         <div className="flex items-center justify-between text-sm text-white/60">
           <div className="flex items-center gap-4">
-            <span>NASA Space Apps Challenge 2024</span>
+            <span>NASA Earth Observation Data</span>
             <span>•</span>
-            <span>Global Award Eligible</span>
+            <span>Scientific Methodology</span>
           </div>
           <div className="flex items-center gap-2">
             <span>Data updated:</span>
