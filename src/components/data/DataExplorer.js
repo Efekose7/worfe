@@ -18,14 +18,22 @@ const DataExplorer = ({ location, weatherData, historicalData }) => {
     
     console.log('=== DataExplorer DEBUG ===');
     console.log('historicalData:', historicalData);
+    console.log('historicalData keys:', Object.keys(historicalData));
     console.log('historicalData.parameters:', historicalData.parameters);
+    console.log('historicalData.rawData:', historicalData.rawData);
+    console.log('historicalData.nasaData:', historicalData.nasaData);
     
-    // NASA POWER verisi yapısını kontrol et
-    const nasaData = historicalData.parameters;
+    // NASA POWER verisi yapısını kontrol et - farklı yapıları dene
+    let nasaData = historicalData.parameters || historicalData.rawData || historicalData.nasaData;
+    
     if (!nasaData) {
-      console.log('No NASA parameters found in historicalData');
+      console.log('No NASA parameters found in historicalData, trying alternative structure...');
+      console.log('Full historicalData structure:', JSON.stringify(historicalData, null, 2));
       return [];
     }
+    
+    console.log('Found NASA data:', nasaData);
+    console.log('NASA data keys:', Object.keys(nasaData));
     
     // T2M verisini al ve işle
     const t2mData = nasaData.T2M || {};
