@@ -1018,7 +1018,6 @@ class WeatherService {
 
   calculateTemperatureRisk(temperatures, tempFactors) {
     const [minTemp, maxTemp] = tempFactors.range;
-    const optimalTemp = (minTemp + maxTemp) / 2;
     
     const riskDays = temperatures.filter(temp => 
       temp < minTemp || temp > maxTemp

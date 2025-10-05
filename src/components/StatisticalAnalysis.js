@@ -1,6 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-         ScatterChart, Scatter, LineChart, Line, BoxPlot, ReferenceLine } from 'recharts';
+         ScatterChart, Scatter, LineChart, Line } from 'recharts';
 import { TrendingUp, TrendingDown, Activity, Droplets, Wind } from 'lucide-react';
 
 const StatisticalAnalysis = ({ statisticalData, eventType }) => {
