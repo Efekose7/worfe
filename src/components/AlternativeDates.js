@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Calendar, Clock, Thermometer, Droplets, Wind, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Calendar, Thermometer, Droplets, Wind, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
 import { weatherService } from '../services/weatherService';
 
@@ -9,10 +9,10 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Etkinlik türleri
+  // Event types
   const eventTypes = useMemo(() => ({
     wedding: {
-      name: "Düğün",
+      name: "Wedding",
       criticalFactors: {
         rain: { weight: 0.4, threshold: 1.0 },
         wind: { weight: 0.3, threshold: 30 },
@@ -21,7 +21,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
       icon: "👰"
     },
     concert: {
-      name: "Konser/Festival",
+      name: "Concert/Festival",
       criticalFactors: {
         rain: { weight: 0.5, threshold: 2.0 },
         wind: { weight: 0.2, threshold: 40 },
@@ -31,7 +31,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
       icon: "🎵"
     },
     sports: {
-      name: "Spor Etkinliği",
+      name: "Sports Event",
       criticalFactors: {
         rain: { weight: 0.3, threshold: 0.5 },
         wind: { weight: 0.2, threshold: 25 },
@@ -41,7 +41,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
       icon: "⚽"
     },
     picnic: {
-      name: "Piknik",
+      name: "Picnic",
       criticalFactors: {
         rain: { weight: 0.5, threshold: 0.1 },
         wind: { weight: 0.2, threshold: 20 },
@@ -50,7 +50,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
       icon: "🧺"
     },
     parade: {
-      name: "Geçit Töreni",
+      name: "Parade",
       criticalFactors: {
         rain: { weight: 0.4, threshold: 0.5 },
         wind: { weight: 0.3, threshold: 35 },
@@ -61,31 +61,27 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
     }
   }), []);
 
-  // Risk skoru hesaplama
+  // Risk score calculation
   const calculateEventRiskScore = useCallback((weatherData, eventType) => {
-    if (!weatherData || !weatherData.current) return { totalRisk: 100, recommendation: "Veri yok" };
+    if (!weatherData || !weatherData.current) return { totalRisk: 100, recommendation: "No Data" };
 
     const event = eventTypes[eventType];
     let riskScore = 0;
     const current = weatherData.current;
 
-    // Yağış riski
+    // Precipitation risk
     if (current.precipitation > event.criticalFactors.rain.threshold) {
-      const rainRisk = Math.min(100, 
-        (current.precipitation / event.criticalFactors.rain.threshold) * 100
-      );
+      const rainRisk = Math.min(100, (current.precipitation / event.criticalFactors.rain.threshold) * 100);
       riskScore += rainRisk * event.criticalFactors.rain.weight;
     }
 
-    // Rüzgar riski
+    // Wind risk
     if (current.wind_speed_10m > event.criticalFactors.wind.threshold) {
-      const windRisk = Math.min(100,
-        (current.wind_speed_10m / event.criticalFactors.wind.threshold) * 100
-      );
+      const windRisk = Math.min(100, (current.wind_speed_10m / event.criticalFactors.wind.threshold) * 100);
       riskScore += windRisk * event.criticalFactors.wind.weight;
     }
 
-    // Sıcaklık riski
+    // Temperature risk
     const [minTemp, maxTemp] = event.criticalFactors.temp.range;
     if (current.temperature_2m < minTemp || current.temperature_2m > maxTemp) {
       const tempRisk = current.temperature_2m < minTemp
@@ -96,13 +92,13 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
 
     return {
       totalRisk: Math.round(riskScore),
-      recommendation: riskScore < 30 ? "İdeal ✅" :
-                     riskScore < 60 ? "Kabul Edilebilir ⚠️" :
-                     "Önerilmez ❌"
+      recommendation: riskScore < 30 ? "Ideal ✅" :
+                     riskScore < 60 ? "Acceptable ⚠️" :
+                     "Not Recommended ❌"
     };
   }, [eventTypes]);
 
-  // Alternatif tarihleri hesapla
+  // Calculate alternative dates
   const calculateAlternatives = useCallback(async () => {
     if (!selectedLocation || !selectedEvent) return;
 
@@ -112,71 +108,44 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
     try {
       const alternatives = [];
       const startDate = new Date(selectedDate);
-      const daysRange = 14; // ±14 gün
-
-      for (let i = -daysRange; i <= daysRange; i++) {
-        if (i === 0) continue; // Orijinal tarihi atla
-
+      
+      // Check ±14 days around the selected date
+      for (let i = -14; i <= 14; i++) {
+        if (i === 0) continue; // Skip original date
+        
         const testDate = new Date(startDate);
         testDate.setDate(startDate.getDate() + i);
-        const dateStr = testDate.toISOString().split('T')[0];
-
+        
         try {
-          // Tarihsel veri çek
-          const historicalData = await weatherService.getHistoricalWeather(
-            selectedLocation.lat,
-            selectedLocation.lng,
-            dateStr,
-            5, // 5 yıl veri
-            7  // ±7 gün pencere
+          const weatherData = await weatherService.getHistoricalWeather(
+            selectedLocation.latitude,
+            selectedLocation.longitude,
+            testDate
           );
-
-          if (historicalData && historicalData.rawData && historicalData.rawData.length > 0) {
-            // Ortalama hava durumu hesapla
-            const avgWeather = {
-              temperature_2m: historicalData.rawData.reduce((sum, day) => sum + (day.temperature.avg || 0), 0) / historicalData.rawData.length,
-              precipitation: historicalData.rawData.reduce((sum, day) => sum + (day.precipitation || 0), 0) / historicalData.rawData.length,
-              wind_speed_10m: historicalData.rawData.reduce((sum, day) => sum + (day.windSpeed || 0), 0) / historicalData.rawData.length,
-              relative_humidity_2m: historicalData.rawData.reduce((sum, day) => sum + (day.humidity || 0), 0) / historicalData.rawData.length
-            };
-
-            const risk = calculateEventRiskScore({ current: avgWeather }, selectedEvent);
-
-            alternatives.push({
-              date: testDate,
-              dateStr: dateStr,
-              riskScore: risk.totalRisk,
-              recommendation: risk.recommendation,
-              weather: avgWeather,
-              dataPoints: historicalData.rawData.length
-            });
-          }
-        } catch (error) {
-          console.log(`Error fetching data for ${dateStr}:`, error.message);
-          // Hata durumunda varsayılan risk skoru
+          
+          const riskScore = calculateEventRiskScore(weatherData, selectedEvent);
+          
           alternatives.push({
             date: testDate,
-            dateStr: dateStr,
-            riskScore: 50,
-            recommendation: "Veri yok",
-            weather: null,
-            dataPoints: 0
+            riskScore: riskScore.totalRisk,
+            recommendation: riskScore.recommendation,
+            weather: weatherData.current,
+            daysFromOriginal: i
           });
+        } catch (error) {
+          console.warn(`Failed to get weather for ${testDate.toISOString()}:`, error);
         }
-
-        // API rate limiting için kısa bekleme
-        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      // En iyi 5 tarihi seç
+      // Sort by risk score (lowest first)
       const sortedAlternatives = alternatives
         .sort((a, b) => a.riskScore - b.riskScore)
-        .slice(0, 5);
+        .slice(0, 5); // Top 5 alternatives
 
       setAlternatives(sortedAlternatives);
     } catch (error) {
       console.error('Error calculating alternatives:', error);
-      setError('Alternatif tarihler hesaplanırken hata oluştu');
+      setError('Failed to calculate alternative dates');
     } finally {
       setLoading(false);
     }
@@ -200,140 +169,101 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
     return <AlertTriangle className="w-5 h-5 text-red-400" />;
   };
 
-  if (!selectedEvent) {
-    return (
-      <div className="card p-6 text-center">
-        <Calendar className="w-12 h-12 text-white/40 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-white mb-2">Alternatif Tarihler</h3>
-        <p className="text-white/60">Önce bir etkinlik türü seçin</p>
-      </div>
-    );
-  }
+  if (!selectedEvent) return null;
 
   return (
     <div className="card p-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <Calendar className="w-6 h-6 text-earth-cyan" />
+      <div className="flex items-center gap-3 mb-6">
+        <Calendar className="w-8 h-8 text-earth-cyan" />
         <div>
-          <h3 className="text-xl font-bold text-white">
-            Alternatif Tarihler
-          </h3>
-          <p className="text-white/70 text-sm">
-            {eventTypes[selectedEvent]?.name} için en iyi tarihler
-          </p>
+          <h2 className="text-2xl font-bold text-white">Alternative Dates</h2>
+          <p className="text-white/70">Find better dates for your {eventTypes[selectedEvent].name.toLowerCase()}</p>
         </div>
       </div>
 
       {loading && (
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-earth-cyan mx-auto mb-4"></div>
-          <p className="text-white/80">Alternatif tarihler hesaplanıyor...</p>
+          <p className="text-white/70">Calculating alternatives...</p>
         </div>
       )}
 
       {error && (
-        <div className="text-center py-8">
-          <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <p className="text-red-400">{error}</p>
+        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6">
+          <p className="text-red-300">{error}</p>
         </div>
       )}
 
-      {!loading && !error && alternatives.length > 0 && (
+      {alternatives.length > 0 && (
         <div className="space-y-4">
           {alternatives.map((alt, index) => (
             <button
               key={index}
-              onClick={() => onSelectDate && onSelectDate(alt.dateStr)}
-              className="w-full bg-white/5 hover:bg-white/10 rounded-lg p-4 text-left transition-all border border-white/10 hover:border-earth-cyan/50 group"
+              onClick={() => onSelectDate(alt.date)}
+              className="w-full bg-white/10 hover:bg-white/15 rounded-lg p-4 text-left transition-all border border-white/20 hover:border-earth-cyan/50"
             >
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <span className="text-2xl">{eventTypes[selectedEvent]?.icon}</span>
-                    <div>
-                      <p className="text-white font-semibold text-lg">
-                        {alt.date.toLocaleDateString('tr-TR', { 
-                          weekday: 'long', 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
-                        })}
-                      </p>
-                      <p className="text-white/70 text-sm">
-                        {alt.dataPoints} günlük veri • {alt.dateStr}
-                      </p>
-                    </div>
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{eventTypes[selectedEvent].icon}</span>
+                  <div>
+                    <p className="text-white font-semibold">
+                      {alt.date.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </p>
+                    <p className="text-white/70 text-sm">
+                      {alt.daysFromOriginal > 0 ? `+${alt.daysFromOriginal} days` : `${alt.daysFromOriginal} days`} from original
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center space-x-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1">
                     {getRiskIcon(alt.riskScore)}
                     <span className={`text-2xl font-bold ${getRiskColor(alt.riskScore)}`}>
                       {alt.riskScore}%
                     </span>
                   </div>
-                  <p className="text-sm text-white/70">{alt.recommendation}</p>
+                  <p className="text-white/70 text-sm">{alt.recommendation}</p>
                 </div>
               </div>
               
-              {alt.weather && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="bg-white/5 rounded p-3 group-hover:bg-white/10 transition-colors">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Thermometer className="w-4 h-4 text-red-400" />
-                      <span className="text-white/70 text-xs">Sıcaklık</span>
-                    </div>
-                    <div className="text-white font-semibold">
-                      {alt.weather.temperature_2m.toFixed(1)}°C
-                    </div>
+              <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="bg-white/5 rounded p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Thermometer className="w-4 h-4 text-orange-400" />
+                    <span className="text-white/70">Temperature</span>
                   </div>
-                  <div className="bg-white/5 rounded p-3 group-hover:bg-white/10 transition-colors">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Droplets className="w-4 h-4 text-blue-400" />
-                      <span className="text-white/70 text-xs">Yağış</span>
-                    </div>
-                    <div className="text-white font-semibold">
-                      {alt.weather.precipitation.toFixed(1)} mm
-                    </div>
-                  </div>
-                  <div className="bg-white/5 rounded p-3 group-hover:bg-white/10 transition-colors">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Wind className="w-4 h-4 text-yellow-400" />
-                      <span className="text-white/70 text-xs">Rüzgar</span>
-                    </div>
-                    <div className="text-white font-semibold">
-                      {alt.weather.wind_speed_10m.toFixed(1)} km/h
-                    </div>
-                  </div>
-                  <div className="bg-white/5 rounded p-3 group-hover:bg-white/10 transition-colors">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Clock className="w-4 h-4 text-green-400" />
-                      <span className="text-white/70 text-xs">Nem</span>
-                    </div>
-                    <div className="text-white font-semibold">
-                      {alt.weather.relative_humidity_2m.toFixed(0)}%
-                    </div>
-                  </div>
+                  <p className="text-white font-semibold">{alt.weather.temperature_2m}°C</p>
                 </div>
-              )}
+                <div className="bg-white/5 rounded p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Droplets className="w-4 h-4 text-blue-400" />
+                    <span className="text-white/70">Precipitation</span>
+                  </div>
+                  <p className="text-white font-semibold">{alt.weather.precipitation} mm</p>
+                </div>
+                <div className="bg-white/5 rounded p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Wind className="w-4 h-4 text-cyan-400" />
+                    <span className="text-white/70">Wind</span>
+                  </div>
+                  <p className="text-white font-semibold">{alt.weather.wind_speed_10m} km/h</p>
+                </div>
+              </div>
             </button>
           ))}
         </div>
       )}
 
-      {!loading && !error && alternatives.length === 0 && (
+      {alternatives.length === 0 && !loading && !error && (
         <div className="text-center py-8">
-          <Calendar className="w-12 h-12 text-white/40 mx-auto mb-4" />
-          <p className="text-white/60">Alternatif tarih bulunamadı</p>
+          <Calendar className="w-12 h-12 text-white/30 mx-auto mb-4" />
+          <p className="text-white/70">No alternative dates found</p>
         </div>
       )}
-
-      <div className="mt-6 p-4 bg-earth-cyan/10 rounded-lg border border-earth-cyan/20">
-        <p className="text-sm text-earth-cyan">
-          💡 Alternatif tarihler, seçilen etkinlik türü için en uygun hava koşullarını gösterir. 
-          Risk skoru ne kadar düşükse, etkinliğiniz o kadar güvenli olur.
-        </p>
-      </div>
     </div>
   );
 };

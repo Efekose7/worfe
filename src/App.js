@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
-import LandingPage from './components/LandingPage';
 import EventPlanner from './components/EventPlanner';
 import EventRiskCard from './components/EventRiskCard';
 import AlternativeDates from './components/AlternativeDates';
@@ -11,37 +10,12 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { WeatherProvider } from './context/WeatherContext';
 
 function App() {
-  const [showLanding, setShowLanding] = useState(true);
   const [selectedEvent] = useState(null);
-
-  const handleStartAnalysis = () => {
-    setShowLanding(false);
-  };
-
-  // const handleEventSelect = (eventType) => {
-  //   setSelectedEvent(eventType);
-  // };
 
   const handleDateChange = (newDate) => {
     // Date change logic will be handled by WeatherContext
     console.log('Date changed to:', newDate);
   };
-
-  if (showLanding) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-deep-space via-nasa-blue to-deep-space">
-        <LandingPage />
-        <div className="fixed bottom-4 right-4">
-          <button
-            onClick={handleStartAnalysis}
-            className="bg-earth-cyan hover:bg-earth-cyan/90 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all transform hover:scale-105"
-          >
-            Analiz Başlat →
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <ErrorBoundary>

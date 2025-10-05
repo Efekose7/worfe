@@ -1,75 +1,75 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, AlertTriangle, CheckCircle, AlertCircle, Clock, Users } from 'lucide-react';
+import { Calendar, MapPin, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
 
-// Etkinlik türleri ve kritik faktörleri
+// Event types and critical factors
 const eventTypes = {
   wedding: {
-    name: "Düğün",
+    name: "Wedding",
     criticalFactors: {
-      rain: { weight: 0.4, threshold: 1.0 }, // mm/saat
+      rain: { weight: 0.4, threshold: 1.0 }, // mm/hour
       wind: { weight: 0.3, threshold: 30 }, // km/h
       temp: { weight: 0.3, range: [18, 30] } // °C
     },
-    duration: "4-8 saat",
+    duration: "4-8 hours",
     icon: "👰",
-    description: "Açık hava düğünü için ideal koşullar"
+    description: "Ideal conditions for outdoor wedding"
   },
   concert: {
-    name: "Konser/Festival",
+    name: "Concert/Festival",
     criticalFactors: {
       rain: { weight: 0.5, threshold: 2.0 },
       wind: { weight: 0.2, threshold: 40 },
       temp: { weight: 0.2, range: [15, 35] },
       storm: { weight: 0.1 }
     },
-    duration: "3-6 saat",
+    duration: "3-6 hours",
     icon: "🎵",
-    description: "Müzik etkinlikleri için hava durumu analizi"
+    description: "Weather analysis for music events"
   },
   sports: {
-    name: "Spor Etkinliği",
+    name: "Sports Event",
     criticalFactors: {
       rain: { weight: 0.3, threshold: 0.5 },
       wind: { weight: 0.2, threshold: 25 },
       temp: { weight: 0.3, range: [10, 28] },
       visibility: { weight: 0.2 }
     },
-    duration: "2-4 saat",
+    duration: "2-4 hours",
     icon: "⚽",
-    description: "Açık hava sporları için güvenli koşullar"
+    description: "Safe conditions for outdoor sports"
   },
   picnic: {
-    name: "Piknik",
+    name: "Picnic",
     criticalFactors: {
       rain: { weight: 0.5, threshold: 0.1 },
       wind: { weight: 0.2, threshold: 20 },
       temp: { weight: 0.3, range: [20, 32] }
     },
-    duration: "3-5 saat",
+    duration: "3-5 hours",
     icon: "🧺",
-    description: "Aile pikniği için mükemmel hava"
+    description: "Perfect weather for family picnic"
   },
   parade: {
-    name: "Geçit Töreni",
+    name: "Parade",
     criticalFactors: {
       rain: { weight: 0.4, threshold: 0.5 },
       wind: { weight: 0.3, threshold: 35 },
       temp: { weight: 0.2, range: [15, 30] },
       visibility: { weight: 0.1 }
     },
-    duration: "2-4 saat",
+    duration: "2-4 hours",
     icon: "🎉",
-    description: "Geçit töreni için uygun hava koşulları"
+    description: "Suitable weather conditions for parade"
   }
 };
 
-// Risk skoru hesaplama fonksiyonu
+// Risk score calculation function
 const calculateEventRiskScore = (weatherData, eventType) => {
   if (!weatherData || !weatherData.current) {
     return {
       totalRisk: 0,
-      recommendation: "Veri yok",
+      recommendation: "No Data",
       details: [],
       confidence: 0
     };
@@ -80,37 +80,33 @@ const calculateEventRiskScore = (weatherData, eventType) => {
   const details = [];
   const current = weatherData.current;
 
-  // Yağış riski
+  // Precipitation risk
   if (current.precipitation > event.criticalFactors.rain.threshold) {
-    const rainRisk = Math.min(100, 
-      (current.precipitation / event.criticalFactors.rain.threshold) * 100
-    );
+    const rainRisk = Math.min(100, (current.precipitation / event.criticalFactors.rain.threshold) * 100);
     riskScore += rainRisk * event.criticalFactors.rain.weight;
     details.push({
-      factor: "Yağış",
+      factor: "Precipitation",
       risk: Math.round(rainRisk),
       value: `${current.precipitation} mm`,
-      status: rainRisk > 70 ? "Yüksek Risk" : rainRisk > 40 ? "Orta Risk" : "Düşük Risk",
+      status: rainRisk > 70 ? "High Risk" : rainRisk > 40 ? "Medium Risk" : "Low Risk",
       weight: event.criticalFactors.rain.weight
     });
   }
 
-  // Rüzgar riski
+  // Wind risk
   if (current.wind_speed_10m > event.criticalFactors.wind.threshold) {
-    const windRisk = Math.min(100,
-      (current.wind_speed_10m / event.criticalFactors.wind.threshold) * 100
-    );
+    const windRisk = Math.min(100, (current.wind_speed_10m / event.criticalFactors.wind.threshold) * 100);
     riskScore += windRisk * event.criticalFactors.wind.weight;
     details.push({
-      factor: "Rüzgar",
+      factor: "Wind",
       risk: Math.round(windRisk),
       value: `${current.wind_speed_10m} km/h`,
-      status: windRisk > 70 ? "Yüksek Risk" : windRisk > 40 ? "Orta Risk" : "Düşük Risk",
+      status: windRisk > 70 ? "High Risk" : windRisk > 40 ? "Medium Risk" : "Low Risk",
       weight: event.criticalFactors.wind.weight
     });
   }
 
-  // Sıcaklık riski
+  // Temperature risk
   const [minTemp, maxTemp] = event.criticalFactors.temp.range;
   if (current.temperature_2m < minTemp || current.temperature_2m > maxTemp) {
     const tempRisk = current.temperature_2m < minTemp
@@ -118,29 +114,31 @@ const calculateEventRiskScore = (weatherData, eventType) => {
       : Math.min(100, ((current.temperature_2m - maxTemp) / 10) * 100);
     riskScore += tempRisk * event.criticalFactors.temp.weight;
     details.push({
-      factor: "Sıcaklık",
+      factor: "Temperature",
       risk: Math.round(tempRisk),
       value: `${current.temperature_2m}°C`,
-      status: tempRisk > 70 ? "Yüksek Risk" : tempRisk > 40 ? "Orta Risk" : "Düşük Risk",
+      status: tempRisk > 70 ? "High Risk" : tempRisk > 40 ? "Medium Risk" : "Low Risk",
       weight: event.criticalFactors.temp.weight
     });
   }
 
-  // Güven aralığı hesaplama (basit)
-  const confidence = Math.max(60, 100 - (riskScore * 0.3));
+  // Calculate confidence based on data quality
+  const confidence = Math.min(95, 70 + (details.length * 5));
 
   return {
     totalRisk: Math.round(riskScore),
-    recommendation: riskScore < 30 ? "İdeal Koşullar ✅" :
-                   riskScore < 60 ? "Kabul Edilebilir ⚠️" :
-                   "Önerilmez ❌",
+    recommendation: riskScore < 30 ? "Ideal Conditions ✅" :
+                   riskScore < 60 ? "Acceptable ⚠️" :
+                   "Not Recommended ❌",
     details,
-    confidence: Math.round(confidence)
+    confidence: Math.round(confidence),
+    eventType: eventType,
+    eventName: event.name
   };
 };
 
 const EventPlanner = () => {
-  const { weatherData, selectedLocation, selectedDate } = useWeather();
+  const { selectedLocation, selectedDate, weatherData } = useWeather();
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showRiskAnalysis, setShowRiskAnalysis] = useState(false);
 
@@ -149,36 +147,40 @@ const EventPlanner = () => {
     setShowRiskAnalysis(true);
   };
 
-  const getRiskColor = (risk) => {
-    if (risk < 30) return 'text-green-400';
-    if (risk < 60) return 'text-yellow-400';
-    return 'text-red-400';
+  const getRiskIcon = (risk) => {
+    if (risk < 30) return <CheckCircle className="w-12 h-12 text-green-500" />;
+    if (risk < 60) return <AlertCircle className="w-12 h-12 text-yellow-500" />;
+    return <AlertTriangle className="w-12 h-12 text-red-500" />;
   };
 
-  const getRiskIcon = (risk) => {
-    if (risk < 30) return <CheckCircle className="w-6 h-6 text-green-400" />;
-    if (risk < 60) return <AlertCircle className="w-6 h-6 text-yellow-400" />;
-    return <AlertTriangle className="w-6 h-6 text-red-400" />;
+  const getRiskColor = (risk) => {
+    if (risk < 30) return 'bg-green-500';
+    if (risk < 60) return 'bg-yellow-500';
+    return 'bg-red-500';
   };
 
   return (
     <div className="space-y-6">
-      {/* Hero Section */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-white mb-4">
-          Etkinliğiniz İçin Mükemmel Hava 🎉
-        </h1>
-        <p className="text-xl text-white/70 mb-6">
-          NASA verileriyle etkinliğinizi güvenle planlayın
-        </p>
-        <div className="flex items-center justify-center space-x-4 text-sm text-white/60">
-          <div className="flex items-center space-x-1">
-            <MapPin className="w-4 h-4" />
-            <span>{selectedLocation ? selectedLocation.name : 'Konum seçin'}</span>
+      {/* Location and Date Selection */}
+      <div className="card p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <MapPin className="w-8 h-8 text-earth-cyan" />
+          <div>
+            <h2 className="text-2xl font-bold text-white">Location & Date</h2>
+            <p className="text-white/70">Select your event location and date</p>
           </div>
-          <div className="flex items-center space-x-1">
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center gap-3 p-4 bg-white/10 rounded-lg">
+            <MapPin className="w-5 h-5 text-earth-cyan" />
+            <span className="text-white">
+              {selectedLocation ? `${selectedLocation.name}, ${selectedLocation.country}` : 'Select location'}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 p-4 bg-white/10 rounded-lg">
             <Calendar className="w-4 h-4" />
-            <span>{selectedDate || 'Tarih seçin'}</span>
+            <span>{selectedDate || 'Select date'}</span>
           </div>
         </div>
       </div>
@@ -186,7 +188,7 @@ const EventPlanner = () => {
       {/* Event Type Selection */}
       <div className="card p-6">
         <h2 className="text-2xl font-bold text-white mb-6">
-          Etkinlik Türünü Seçin
+          Select Event Type
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {Object.entries(eventTypes).map(([key, event]) => (
@@ -215,7 +217,7 @@ const EventPlanner = () => {
               <span className="text-3xl">{eventTypes[selectedEvent].icon}</span>
               <div>
                 <h3 className="text-xl font-bold text-white">
-                  {eventTypes[selectedEvent].name} Risk Analizi
+                  {eventTypes[selectedEvent].name} Risk Analysis
                 </h3>
                 <p className="text-white/70 text-sm">
                   {eventTypes[selectedEvent].description}
@@ -225,89 +227,55 @@ const EventPlanner = () => {
             {getRiskIcon(calculateEventRiskScore(weatherData, selectedEvent).totalRisk)}
           </div>
 
-          {/* Risk Skoru */}
+          {/* Risk Score */}
           <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-white/80">Etkinlik Risk Skoru</span>
-              <span className={`text-3xl font-bold ${getRiskColor(calculateEventRiskScore(weatherData, selectedEvent).totalRisk)}`}>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-gray-400">Event Risk Score</span>
+              <span className="text-2xl font-bold text-white">
                 {calculateEventRiskScore(weatherData, selectedEvent).totalRisk}%
               </span>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-4 mb-3">
-              <div
-                className={`h-4 rounded-full transition-all duration-500 ${
-                  calculateEventRiskScore(weatherData, selectedEvent).totalRisk < 30 ? 'bg-green-500' :
-                  calculateEventRiskScore(weatherData, selectedEvent).totalRisk < 60 ? 'bg-yellow-500' :
-                  'bg-red-500'
-                }`}
-                style={{ width: `${Math.min(calculateEventRiskScore(weatherData, selectedEvent).totalRisk, 100)}%` }}
+            <div className="w-full bg-gray-700 rounded-full h-3">
+              <div 
+                className={`h-3 rounded-full ${getRiskColor(calculateEventRiskScore(weatherData, selectedEvent).totalRisk)} transition-all duration-500`}
+                style={{ width: `${calculateEventRiskScore(weatherData, selectedEvent).totalRisk}%` }}
               />
             </div>
-            <p className="text-center text-lg font-semibold text-white">
+            <p className="text-center mt-2 text-lg font-semibold">
               {calculateEventRiskScore(weatherData, selectedEvent).recommendation}
             </p>
           </div>
 
-          {/* Detaylı Risk Faktörleri */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wide">
-              Risk Faktörleri
-            </h4>
+          {/* Detailed Risk Factors */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-400 uppercase">Risk Factors</h4>
             {calculateEventRiskScore(weatherData, selectedEvent).details.map((detail, index) => (
-              <div key={index} className="bg-white/5 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-2">
+              <div key={index} className="bg-gray-800/50 rounded-lg p-3">
+                <div className="flex justify-between items-center mb-1">
                   <span className="text-white font-medium">{detail.factor}</span>
-                  <span className={`text-sm px-3 py-1 rounded-full ${
-                    detail.status === "Yüksek Risk" ? 'bg-red-500/20 text-red-300' :
-                    detail.status === "Orta Risk" ? 'bg-yellow-500/20 text-yellow-300' :
-                    'bg-green-500/20 text-green-300'
+                  <span className={`text-sm px-2 py-1 rounded ${
+                    detail.status === "High Risk" ? "bg-red-500/20 text-red-300" :
+                    detail.status === "Medium Risk" ? "bg-yellow-500/20 text-yellow-300" :
+                    "bg-green-500/20 text-green-300"
                   }`}>
                     {detail.status}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-white/70 text-sm">{detail.value}</span>
+                  <span className="text-gray-400 text-sm">{detail.value}</span>
                   <span className="text-white font-bold">{detail.risk}%</span>
-                </div>
-                <div className="mt-2 text-xs text-white/60">
-                  Ağırlık: {(detail.weight * 100).toFixed(0)}%
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Güven Aralığı */}
-          <div className="mt-6 pt-4 border-t border-white/20">
+          {/* Confidence Level */}
+          <div className="mt-4 pt-4 border-t border-gray-700">
             <div className="flex justify-between items-center">
-              <span className="text-white/80 text-sm">Tahmin Güveni</span>
+              <span className="text-gray-400 text-sm">Prediction Confidence</span>
               <span className="text-white font-semibold">
-                %{calculateEventRiskScore(weatherData, selectedEvent).confidence}
+                {calculateEventRiskScore(weatherData, selectedEvent).confidence}%
               </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Event Info */}
-      {selectedEvent && (
-        <div className="card p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Etkinlik Bilgileri
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-3">
-              <Clock className="w-5 h-5 text-earth-cyan" />
-              <div>
-                <div className="text-white font-medium">Süre</div>
-                <div className="text-white/70 text-sm">{eventTypes[selectedEvent].duration}</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Users className="w-5 h-5 text-earth-cyan" />
-              <div>
-                <div className="text-white font-medium">Etkinlik Türü</div>
-                <div className="text-white/70 text-sm">{eventTypes[selectedEvent].name}</div>
-              </div>
             </div>
           </div>
         </div>
