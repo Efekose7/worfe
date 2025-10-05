@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/worfe/static/css/main.5a5aeb12.css",
-    "main.js": "/worfe/static/js/main.9027d935.js",
+    "main.js": "/worfe/static/js/main.c886e1d2.js",
     "index.html": "/worfe/index.html",
     "main.5a5aeb12.css.map": "/worfe/static/css/main.5a5aeb12.css.map",
-    "main.9027d935.js.map": "/worfe/static/js/main.9027d935.js.map"
+    "main.c886e1d2.js.map": "/worfe/static/js/main.c886e1d2.js.map"
   },
   "entrypoints": [
     "static/css/main.5a5aeb12.css",
-    "static/js/main.9027d935.js"
+    "static/js/main.c886e1d2.js"
   ]
 }
