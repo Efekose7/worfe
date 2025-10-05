@@ -518,7 +518,7 @@ class WeatherService {
         windSpeed: [],
         humidity: [],
         pressure: []
-      },
+      }
       rawData: []
     };
 
@@ -545,7 +545,7 @@ class WeatherService {
               max: dailyData.temperature_2m_max && dailyData.temperature_2m_max[i] !== undefined ? dailyData.temperature_2m_max[i] : null,
               min: dailyData.temperature_2m_min && dailyData.temperature_2m_min[i] !== undefined ? dailyData.temperature_2m_min[i] : null,
               avg: null
-            },
+            }
             precipitation: dailyData.precipitation_sum && dailyData.precipitation_sum[i] !== undefined ? dailyData.precipitation_sum[i] : 0,
             windSpeed: dailyData.wind_speed_10m_max && dailyData.wind_speed_10m_max[i] !== undefined ? dailyData.wind_speed_10m_max[i] : 0,
             humidity: dailyData.relative_humidity_2m_mean && dailyData.relative_humidity_2m_mean[i] !== undefined ? dailyData.relative_humidity_2m_mean[i] : 0,
@@ -641,7 +641,7 @@ class WeatherService {
       dateRange: {
         start: Math.min(...rawData.map(d => new Date(d.date).getFullYear())),
         end: Math.max(...rawData.map(d => new Date(d.date).getFullYear()))
-      },
+      }
       statistics: this.calculateDetailedStatistics(statistics)
     };
   }
@@ -925,7 +925,7 @@ class WeatherService {
         end: Math.max(...sameDateData.map(d => d.year))
       }
     };
-  },
+  }
 
   // Detailed Temperature Statistics
   calculateDetailedTemperatureStats(temperatures) {
@@ -948,15 +948,15 @@ class WeatherService {
         q1: this.calculatePercentile(sorted, 25),
         q2: this.calculatePercentile(sorted, 50),
         q3: this.calculatePercentile(sorted, 75)
-      },
+      }
       percentiles: {
         p10: this.calculatePercentile(sorted, 10),
         p90: this.calculatePercentile(sorted, 90),
         p95: this.calculatePercentile(sorted, 95)
-      },
+      }
       outliers: this.findOutliers(temperatures, mean, stdDev)
     };
-  },
+  }
 
   // Detailed Precipitation Statistics
   calculatePrecipitationStats(precipitations) {
@@ -977,7 +977,7 @@ class WeatherService {
       dryDays: precipitations.length - rainDays,
       rainDistribution: this.calculateRainDistribution(precipitations)
     };
-  },
+  }
 
   // Detailed Wind Statistics
   calculateWindStats(windSpeeds) {
@@ -996,7 +996,7 @@ class WeatherService {
       windyDays: windSpeeds.filter(w => w > 20).length,
       extremeWindDays: windSpeeds.filter(w => w > 40).length
     };
-  },
+  }
 
   // Historical Pattern Analysis
   analyzeHistoricalPatterns(data, month, day) {
@@ -1035,14 +1035,14 @@ class WeatherService {
         temperature: tempTrend,
         precipitation: precipTrend,
         wind: windTrend
-      },
+      }
       trendDirection: this.getTrendDirection({
         temperature: tempTrend,
         precipitation: precipTrend,
         wind: windTrend
       })
     };
-  },
+  }
 
   // Calculate trend using linear regression
   calculateTrend(values) {
@@ -1072,7 +1072,7 @@ class WeatherService {
       correlation: Math.round(correlation * 100) / 100,
       direction: slope > 0 ? 'increasing' : slope < 0 ? 'decreasing' : 'stable'
     };
-  },
+  }
 
   // Get overall trend direction
   getTrendDirection(trends) {
@@ -1091,7 +1091,7 @@ class WeatherService {
     } else {
       return 'mixed_patterns';
     }
-  },
+  }
 
   // Calculate 95% Confidence Intervals
   calculateAdvancedConfidenceIntervals(tempStats, precipStats, windStats) {
@@ -1104,13 +1104,13 @@ class WeatherService {
           lower: Math.round((tempStats.mean - zScore * (tempStats.stdDev / Math.sqrt(tempStats.sampleSize || 1))) * 10) / 10,
           upper: Math.round((tempStats.mean + zScore * (tempStats.stdDev / Math.sqrt(tempStats.sampleSize || 1))) * 10) / 10
         }
-      },
+      }
       precipitation: {
         probability: {
           lower: Math.max(0, Math.round((precipStats.rainProbability - zScore * Math.sqrt(precipStats.rainProbability * (100 - precipStats.rainProbability) / (precipStats.sampleSize || 1))) * 10) / 10),
           upper: Math.min(100, Math.round((precipStats.rainProbability + zScore * Math.sqrt(precipStats.rainProbability * (100 - precipStats.rainProbability) / (precipStats.sampleSize || 1))) * 10) / 10)
         }
-      },
+      }
       wind: {
         mean: {
           lower: Math.round((windStats.mean - zScore * (windStats.stdDev / Math.sqrt(windStats.sampleSize || 1))) * 10) / 10,
@@ -1118,7 +1118,7 @@ class WeatherService {
         }
       }
     };
-  },
+  }
 
   // Prepare data for visualization
   prepareVisualizationData(temperatures, precipitations, windSpeeds, sameDateData) {
@@ -1128,7 +1128,7 @@ class WeatherService {
       scatter: this.createScatterData(windSpeeds, precipitations),
       timeSeries: this.createTimeSeriesData(sameDateData)
     };
-  },
+  }
 
   // Create histogram data
   createHistogramData(temperatures) {
@@ -1149,7 +1149,7 @@ class WeatherService {
     }
     
     return bins;
-  },
+  }
 
   // Create box plot data
   createBoxPlotData(temperatures) {
@@ -1165,7 +1165,7 @@ class WeatherService {
         Math.sqrt(temperatures.reduce((a, b) => a + Math.pow(b - temperatures.reduce((a, b) => a + b, 0) / temperatures.length, 2), 0) / temperatures.length)
       )
     };
-  },
+  }
 
   // Create scatter plot data
   createScatterData(windSpeeds, precipitations) {
@@ -1174,7 +1174,7 @@ class WeatherService {
       precipitation: precipitations[i],
       correlation: this.calculateCorrelation(windSpeeds, precipitations)
     }));
-  },
+  }
 
   // Create time series data
   createTimeSeriesData(sameDateData) {
@@ -1184,7 +1184,7 @@ class WeatherService {
       precipitation: d.precipitation,
       windSpeed: d.windSpeed
     })).sort((a, b) => a.year - b.year);
-  },
+  }
 
   // Calculate correlation coefficient
   calculateCorrelation(x, y) {
@@ -1196,7 +1196,7 @@ class WeatherService {
     const sumYY = y.reduce((sum, yi) => sum + yi * yi, 0);
     
     return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
-  },
+  }
 
   // Calculate percentile
   calculatePercentile(sorted, percentile) {
@@ -1207,7 +1207,7 @@ class WeatherService {
     
     if (upper >= sorted.length) return sorted[sorted.length - 1];
     return sorted[lower] * (1 - weight) + sorted[upper] * weight;
-  },
+  }
 
   // Find outliers using IQR method
   findOutliers(values, mean, stdDev) {
@@ -1219,7 +1219,7 @@ class WeatherService {
     const upperBound = q3 + 1.5 * iqr;
     
     return values.filter(v => v < lowerBound || v > upperBound);
-  },
+  }
 
   // Calculate rain distribution
   calculateRainDistribution(precipitations) {
@@ -1236,7 +1236,7 @@ class WeatherService {
       count: precipitations.filter(p => p >= range.min && p < range.max).length,
       percentage: Math.round((precipitations.filter(p => p >= range.min && p < range.max).length / precipitations.length) * 100)
     }));
-  },
+  }
 
   // PARADE-SPECIFIC ANALYSIS FOR NASA SPACE APPS CHALLENGE
   calculateParadeSpecificAnalysis(historicalData, eventDate, eventType) {
@@ -1288,7 +1288,7 @@ class WeatherService {
       traditionalParadeDays,
       paradeRecommendations
     };
-  },
+  }
 
   // Calculate hourly risk for parade times (10:00-16:00)
   calculateHourlyParadeRisk(sameDateData) {
@@ -1319,7 +1319,7 @@ class WeatherService {
     });
     
     return hourlyRisks;
-  },
+  }
 
   // Evaluate crowd safety for parade
   evaluateCrowdSafety(sameDateData) {
@@ -1352,7 +1352,7 @@ class WeatherService {
         windSpeed: Math.round(avgWind * 10) / 10
       }
     };
-  },
+  }
 
   // Calculate visibility score
   calculateVisibilityScore(sameDateData) {
@@ -1384,7 +1384,7 @@ class WeatherService {
         windSpeed: Math.round(avgWind * 10) / 10
       }
     };
-  },
+  }
 
   // Assess equipment protection risk
   assessEquipmentRisk(sameDateData) {
@@ -1418,7 +1418,7 @@ class WeatherService {
         maxWindSpeed: Math.round(maxWind * 10) / 10
       }
     };
-  },
+  }
 
   // Get equipment protection recommendations
   getEquipmentRecommendations(riskScore, avgPrecip, avgWind) {
@@ -1445,7 +1445,7 @@ class WeatherService {
     }
     
     return recommendations;
-  },
+  }
 
   // Analyze traditional parade days
   analyzeTraditionalParadeDays(rawData, month) {
@@ -1495,7 +1495,7 @@ class WeatherService {
     });
     
     return analysis;
-  },
+  }
 
   // Generate parade-specific recommendations
   generateParadeRecommendations(hourlyRisk, crowdSafety, visibility, equipment) {
@@ -1849,11 +1849,11 @@ class WeatherService {
       temperature: {
         lower: Math.round((tempStats.mean - z95 * tempStats.stdDev) * 10) / 10,
         upper: Math.round((tempStats.mean + z95 * tempStats.stdDev) * 10) / 10
-      },
+      }
       precipitation: {
         lower: Math.round((precipStats.averageRainfall - z95 * Math.sqrt(precipStats.averageRainfall)) * 10) / 10,
         upper: Math.round((precipStats.averageRainfall + z95 * Math.sqrt(precipStats.averageRainfall)) * 10) / 10
-      },
+      }
       windSpeed: {
         lower: Math.round((windStats.mean - z95 * windStats.stdDev) * 10) / 10,
         upper: Math.round((windStats.mean + z95 * windStats.stdDev) * 10) / 10
@@ -1895,7 +1895,7 @@ class WeatherService {
         q3: tempStats.q3,
         max: tempStats.max,
         outliers: this.findOutliers(sameDateData.map(d => d.temperature_2m))
-      },
+      }
       precipitation: {
         min: 0,
         q1: this.calculatePercentile(sameDateData.map(d => d.precipitation), 25),
@@ -2085,14 +2085,14 @@ class WeatherService {
         "analysis_type": "Historical Weather Probability Analysis",
         "question_answered": "What happened on this date in the past?",
         "purpose": "Historical probability analysis for planning"
-      },
+      }
       "📍 location": {
         name: location.name || 'Unknown',
         coordinates: {
           latitude: location.lat,
           longitude: location.lng
         }
-      },
+      }
       "📊 analysis": {
         analysis_date: new Date().toISOString(),
         target_date: weatherData.targetDate,
@@ -2102,10 +2102,10 @@ class WeatherService {
           start: probabilities.dateRange.start,
           end: probabilities.dateRange.end,
           total_days: probabilities.totalDays
-        },
+        }
         methodology: 'NASA Earth Observation Data + Historical Weather Pattern Analysis',
         disclaimer: 'This is NOT a weather forecast - based on NASA Earth observation and historical data only'
-      },
+      }
       "🌡️ historical_probabilities": probabilities.probabilities,
       "🌍 climate_change_trends": probabilities.climateTrends,
       "📈 trends": probabilities.trends,
@@ -2116,7 +2116,7 @@ class WeatherService {
         time_period: `${probabilities.dateRange.start} to ${probabilities.dateRange.end}`,
         data_points: `${probabilities.totalDays} historical days`,
         purpose: 'Historical probability analysis for planning'
-      },
+      }
       "📚 attribution": {
         primary_source: 'NASA POWER API',
         nasa_data: 'NASA GES DISC',
@@ -2125,7 +2125,7 @@ class WeatherService {
         worfe_dashboard: 'Historical Weather Analysis Platform',
         generated_by: 'Worfe Weather Dashboard - NASA Earth Observation Data',
         generated_on: new Date().toISOString()
-      },
+      }
       "🚀 worfe_info": {
         project: 'Worfe - NASA Earth Observation Weather Analysis Dashboard',
         platform: 'Historical Weather Analysis Platform',
@@ -2253,11 +2253,11 @@ class WeatherService {
           rain: { weight: 0.4, threshold: 1.0 }, // mm/saat
           wind: { weight: 0.3, threshold: 30 }, // km/h
           temp: { weight: 0.3, range: [18, 30] } // °C
-        },
+        }
         duration: "4-8 saat",
         icon: "👰",
         description: "Açık hava düğünü için ideal koşullar"
-      },
+      }
       concert: {
         name: "Konser/Festival",
         criticalFactors: {
@@ -2265,11 +2265,11 @@ class WeatherService {
           wind: { weight: 0.2, threshold: 40 },
           temp: { weight: 0.2, range: [15, 35] },
           storm: { weight: 0.1 }
-        },
+        }
         duration: "3-6 saat",
         icon: "🎵",
         description: "Müzik etkinlikleri için hava durumu analizi"
-      },
+      }
       sports: {
         name: "Spor Etkinliği",
         criticalFactors: {
@@ -2277,22 +2277,22 @@ class WeatherService {
           wind: { weight: 0.2, threshold: 25 },
           temp: { weight: 0.3, range: [10, 28] },
           visibility: { weight: 0.2 }
-        },
+        }
         duration: "2-4 saat",
         icon: "⚽",
         description: "Açık hava sporları için güvenli koşullar"
-      },
+      }
       picnic: {
         name: "Piknik",
         criticalFactors: {
           rain: { weight: 0.5, threshold: 0.1 },
           wind: { weight: 0.2, threshold: 20 },
           temp: { weight: 0.3, range: [20, 32] }
-        },
+        }
         duration: "3-5 saat",
         icon: "🧺",
         description: "Aile pikniği için mükemmel hava"
-      },
+      }
       parade: {
         name: "Geçit Töreni",
         criticalFactors: {
@@ -2300,7 +2300,7 @@ class WeatherService {
           wind: { weight: 0.3, threshold: 35 },
           temp: { weight: 0.2, range: [15, 30] },
           visibility: { weight: 0.1 }
-        },
+        }
         duration: "2-4 saat",
         icon: "🎉",
         description: "Geçit töreni için uygun hava koşulları"
@@ -2503,7 +2503,7 @@ class WeatherService {
           veryWindy: 40,
           veryWet: 10,
           veryUncomfortable: 40
-        },
+        }
         {
           yearsOfData: 10,
           dateWindow: 7,
