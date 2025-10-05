@@ -3,15 +3,12 @@ import { useWeather } from '../context/WeatherContext';
 import ProbabilityCards from './ProbabilityCards';
 import WeatherCharts from './WeatherCharts';
 import LocationInfo from './LocationInfo';
-import DataExplorer from './data/DataExplorer';
 import { AlertCircle } from 'lucide-react';
 
 const Dashboard = () => {
   const { 
     selectedLocation, 
     probabilities, 
-    weatherData,
-    historicalData,
     loading, 
     error 
   } = useWeather();
@@ -97,13 +94,6 @@ const Dashboard = () => {
 
       {/* Probability Cards */}
       <ProbabilityCards />
-
-      {/* Interactive NASA Data Explorer */}
-      <DataExplorer 
-        location={selectedLocation} 
-        weatherData={weatherData}
-        historicalData={historicalData}
-      />
 
       {/* Weather Charts */}
       <WeatherCharts />
