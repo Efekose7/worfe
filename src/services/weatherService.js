@@ -3446,6 +3446,7 @@ class WeatherService {
     // Add probability data
     if (probabilities && probabilities.probabilities) {
       Object.entries(probabilities.probabilities).forEach(([key, value]) => {
+        const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
         csvData.push([
           new Date().toISOString().split('T')[0],
           `"${location.name}"`,
@@ -3454,7 +3455,7 @@ class WeatherService {
           'N/A',
           'N/A',
           key,
-          value.toFixed(1)
+          numValue.toFixed(1)
         ].join(','));
       });
     }
