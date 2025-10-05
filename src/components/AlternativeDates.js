@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, Clock, Thermometer, Droplets, Wind, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
 import { weatherService } from '../services/weatherService';
@@ -103,7 +103,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
   };
 
   // Alternatif tarihleri hesapla
-  const calculateAlternatives = async () => {
+  const calculateAlternatives = useCallback(async () => {
     if (!selectedLocation || !selectedEvent) return;
 
     setLoading(true);
@@ -180,7 +180,7 @@ const AlternativeDates = ({ selectedEvent, onSelectDate }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedLocation, selectedEvent, selectedDate]);
 
   useEffect(() => {
     if (selectedLocation && selectedEvent) {

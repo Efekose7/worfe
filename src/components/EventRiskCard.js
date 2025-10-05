@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 
 const EventRiskCard = ({ eventType, riskData, weatherData }) => {
   if (!riskData || !eventType) return null;

@@ -12,7 +12,7 @@ import { WeatherProvider } from './context/WeatherContext';
 
 function App() {
   const [showLanding, setShowLanding] = useState(true);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedEvent] = useState(null);
 
   const handleStartAnalysis = () => {
     setShowLanding(false);
