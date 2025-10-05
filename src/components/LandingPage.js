@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Calendar, TrendingUp, Zap, CheckCircle, ArrowRight, Github, ExternalLink } from 'lucide-react';
+import { Cloud, Calendar, TrendingUp, Zap, ArrowRight, Github, ExternalLink } from 'lucide-react';
 
 const LandingPage = ({ onStartAnalysis }) => {
   const [scrollY, setScrollY] = useState(0);
