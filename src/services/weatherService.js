@@ -858,6 +858,687 @@ class WeatherService {
       };
     }
 
+    // Calculate comprehensive statistical analysis
+    const stats = this.calculateComprehensiveStatistics(historicalData, eventDate, eventType);
+    return stats;
+  },
+
+  // Comprehensive Statistical Analysis with Scientific Methodology
+  calculateComprehensiveStatistics(historicalData, eventDate, eventType) {
+    const rawData = historicalData.rawData;
+    const eventMonth = eventDate.getMonth() + 1;
+    const eventDay = eventDate.getDate();
+    
+    // Filter data for same date over years
+    const sameDateData = rawData.filter(d => 
+      d.month === eventMonth && d.day === eventDay
+    );
+    
+    if (sameDateData.length < 5) {
+      return {
+        temperature: null,
+        precipitation: null,
+        wind: null,
+        patterns: null,
+        confidence: null,
+        visualization: null,
+        reliability: 'low',
+        sampleSize: sameDateData.length,
+        dateRange: null
+      };
+    }
+
+    // Extract data arrays
+    const temperatures = sameDateData.map(d => d.temperature);
+    const precipitations = sameDateData.map(d => d.precipitation);
+    const windSpeeds = sameDateData.map(d => d.windSpeed);
+
+    // Calculate detailed statistics
+    const tempStats = this.calculateDetailedTemperatureStats(temperatures);
+    const precipStats = this.calculatePrecipitationStats(precipitations);
+    const windStats = this.calculateWindStats(windSpeeds);
+    
+    // Historical pattern analysis
+    const patterns = this.analyzeHistoricalPatterns(rawData, eventMonth, eventDay);
+    
+    // Confidence intervals (95%)
+    const confidence = this.calculateAdvancedConfidenceIntervals(tempStats, precipStats, windStats);
+    
+    // Event-specific risk analysis
+    const eventRisk = this.calculateEventSpecificRisk(sameDateData, eventType, eventDate);
+    
+    // Visualization data preparation
+    const visualization = this.prepareVisualizationData(temperatures, precipitations, windSpeeds, sameDateData);
+    
+    return {
+      temperature: tempStats,
+      precipitation: precipStats,
+      wind: windStats,
+      patterns: patterns,
+      confidence: confidence,
+      eventRisk: eventRisk,
+      visualization: visualization,
+      reliability: sameDateData.length >= 10 ? 'high' : sameDateData.length >= 5 ? 'moderate' : 'low',
+      sampleSize: sameDateData.length,
+      dateRange: {
+        start: Math.min(...sameDateData.map(d => d.year)),
+        end: Math.max(...sameDateData.map(d => d.year))
+      }
+    };
+  },
+
+  // Detailed Temperature Statistics
+  calculateDetailedTemperatureStats(temperatures) {
+    if (!temperatures || temperatures.length === 0) return null;
+    
+    const sorted = [...temperatures].sort((a, b) => a - b);
+    const mean = temperatures.reduce((a, b) => a + b, 0) / temperatures.length;
+    const variance = temperatures.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / temperatures.length;
+    const stdDev = Math.sqrt(variance);
+    
+    return {
+      mean: Math.round(mean * 10) / 10,
+      median: this.calculatePercentile(sorted, 50),
+      min: Math.min(...temperatures),
+      max: Math.max(...temperatures),
+      stdDev: Math.round(stdDev * 10) / 10,
+      variance: Math.round(variance * 10) / 10,
+      range: Math.max(...temperatures) - Math.min(...temperatures),
+      quartiles: {
+        q1: this.calculatePercentile(sorted, 25),
+        q2: this.calculatePercentile(sorted, 50),
+        q3: this.calculatePercentile(sorted, 75)
+      },
+      percentiles: {
+        p10: this.calculatePercentile(sorted, 10),
+        p90: this.calculatePercentile(sorted, 90),
+        p95: this.calculatePercentile(sorted, 95)
+      },
+      outliers: this.findOutliers(temperatures, mean, stdDev)
+    };
+  },
+
+  // Detailed Precipitation Statistics
+  calculatePrecipitationStats(precipitations) {
+    if (!precipitations || precipitations.length === 0) return null;
+    
+    const rainDays = precipitations.filter(p => p > 0.1).length;
+    const heavyRainDays = precipitations.filter(p => p > 5.0).length;
+    const totalRainfall = precipitations.reduce((a, b) => a + b, 0);
+    const avgRainfall = totalRainfall / precipitations.length;
+    const maxRainfall = Math.max(...precipitations);
+    
+    return {
+      rainProbability: Math.round((rainDays / precipitations.length) * 100),
+      heavyRainProbability: Math.round((heavyRainDays / precipitations.length) * 100),
+      averageRainfall: Math.round(avgRainfall * 10) / 10,
+      totalRainfall: Math.round(totalRainfall * 10) / 10,
+      maxRainfall: Math.round(maxRainfall * 10) / 10,
+      dryDays: precipitations.length - rainDays,
+      rainDistribution: this.calculateRainDistribution(precipitations)
+    };
+  },
+
+  // Detailed Wind Statistics
+  calculateWindStats(windSpeeds) {
+    if (!windSpeeds || windSpeeds.length === 0) return null;
+    
+    const mean = windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length;
+    const variance = windSpeeds.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / windSpeeds.length;
+    const stdDev = Math.sqrt(variance);
+    
+    return {
+      mean: Math.round(mean * 10) / 10,
+      median: this.calculatePercentile([...windSpeeds].sort((a, b) => a - b), 50),
+      max: Math.max(...windSpeeds),
+      stdDev: Math.round(stdDev * 10) / 10,
+      calmDays: windSpeeds.filter(w => w < 10).length,
+      windyDays: windSpeeds.filter(w => w > 20).length,
+      extremeWindDays: windSpeeds.filter(w => w > 40).length
+    };
+  },
+
+  // Historical Pattern Analysis
+  analyzeHistoricalPatterns(data, month, day) {
+    const yearlyData = {};
+    
+    // Group by year
+    data.forEach(d => {
+      if (d.month === month && d.day === day) {
+        if (!yearlyData[d.year]) {
+          yearlyData[d.year] = [];
+        }
+        yearlyData[d.year].push(d);
+      }
+    });
+    
+    // Calculate yearly trends
+    const years = Object.keys(yearlyData).sort((a, b) => a - b);
+    const tempTrends = years.map(year => {
+      const yearData = yearlyData[year];
+      return {
+        year: parseInt(year),
+        avgTemp: yearData.reduce((sum, d) => sum + d.temperature, 0) / yearData.length,
+        avgPrecip: yearData.reduce((sum, d) => sum + d.precipitation, 0) / yearData.length,
+        avgWind: yearData.reduce((sum, d) => sum + d.windSpeed, 0) / yearData.length
+      };
+    });
+    
+    // Linear regression for trends
+    const tempTrend = this.calculateTrend(tempTrends.map(t => t.avgTemp));
+    const precipTrend = this.calculateTrend(tempTrends.map(t => t.avgPrecip));
+    const windTrend = this.calculateTrend(tempTrends.map(t => t.avgWind));
+    
+    return {
+      yearlyData: tempTrends,
+      trends: {
+        temperature: tempTrend,
+        precipitation: precipTrend,
+        wind: windTrend
+      },
+      trendDirection: this.getTrendDirection({
+        temperature: tempTrend,
+        precipitation: precipTrend,
+        wind: windTrend
+      })
+    };
+  },
+
+  // Calculate trend using linear regression
+  calculateTrend(values) {
+    const n = values.length;
+    const x = Array.from({length: n}, (_, i) => i);
+    const y = values;
+    
+    const sumX = x.reduce((a, b) => a + b, 0);
+    const sumY = y.reduce((a, b) => a + b, 0);
+    const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+    const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    
+    // Calculate correlation coefficient
+    const meanX = sumX / n;
+    const meanY = sumY / n;
+    const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
+    const denomX = Math.sqrt(x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0));
+    const denomY = Math.sqrt(y.reduce((sum, yi) => sum + Math.pow(yi - meanY, 2), 0));
+    const correlation = numerator / (denomX * denomY);
+    
+    return {
+      slope: Math.round(slope * 1000) / 1000,
+      intercept: Math.round(intercept * 100) / 100,
+      correlation: Math.round(correlation * 100) / 100,
+      direction: slope > 0 ? 'increasing' : slope < 0 ? 'decreasing' : 'stable'
+    };
+  },
+
+  // Get overall trend direction
+  getTrendDirection(trends) {
+    const tempDir = trends.temperature.direction;
+    const precipDir = trends.precipitation.direction;
+    const windDir = trends.wind.direction;
+    
+    if (tempDir === 'increasing' && precipDir === 'increasing') {
+      return 'warming_and_wetter';
+    } else if (tempDir === 'increasing' && precipDir === 'decreasing') {
+      return 'warming_and_drier';
+    } else if (tempDir === 'decreasing' && precipDir === 'increasing') {
+      return 'cooling_and_wetter';
+    } else if (tempDir === 'decreasing' && precipDir === 'decreasing') {
+      return 'cooling_and_drier';
+    } else {
+      return 'mixed_patterns';
+    }
+  },
+
+  // Calculate 95% Confidence Intervals
+  calculateAdvancedConfidenceIntervals(tempStats, precipStats, windStats) {
+    const confidence = 0.95;
+    const zScore = 1.96; // 95% confidence
+    
+    return {
+      temperature: {
+        mean: {
+          lower: Math.round((tempStats.mean - zScore * (tempStats.stdDev / Math.sqrt(tempStats.sampleSize || 1))) * 10) / 10,
+          upper: Math.round((tempStats.mean + zScore * (tempStats.stdDev / Math.sqrt(tempStats.sampleSize || 1))) * 10) / 10
+        }
+      },
+      precipitation: {
+        probability: {
+          lower: Math.max(0, Math.round((precipStats.rainProbability - zScore * Math.sqrt(precipStats.rainProbability * (100 - precipStats.rainProbability) / (precipStats.sampleSize || 1))) * 10) / 10),
+          upper: Math.min(100, Math.round((precipStats.rainProbability + zScore * Math.sqrt(precipStats.rainProbability * (100 - precipStats.rainProbability) / (precipStats.sampleSize || 1))) * 10) / 10)
+        }
+      },
+      wind: {
+        mean: {
+          lower: Math.round((windStats.mean - zScore * (windStats.stdDev / Math.sqrt(windStats.sampleSize || 1))) * 10) / 10,
+          upper: Math.round((windStats.mean + zScore * (windStats.stdDev / Math.sqrt(windStats.sampleSize || 1))) * 10) / 10
+        }
+      }
+    };
+  },
+
+  // Prepare data for visualization
+  prepareVisualizationData(temperatures, precipitations, windSpeeds, sameDateData) {
+    return {
+      histogram: this.createHistogramData(temperatures),
+      boxPlot: this.createBoxPlotData(temperatures),
+      scatter: this.createScatterData(windSpeeds, precipitations),
+      timeSeries: this.createTimeSeriesData(sameDateData)
+    };
+  },
+
+  // Create histogram data
+  createHistogramData(temperatures) {
+    const min = Math.min(...temperatures);
+    const max = Math.max(...temperatures);
+    const binSize = (max - min) / 10;
+    const bins = [];
+    
+    for (let i = 0; i < 10; i++) {
+      const binStart = min + i * binSize;
+      const binEnd = binStart + binSize;
+      const count = temperatures.filter(t => t >= binStart && t < binEnd).length;
+      bins.push({
+        range: `${Math.round(binStart)}-${Math.round(binEnd)}`,
+        count: count,
+        percentage: Math.round((count / temperatures.length) * 100)
+      });
+    }
+    
+    return bins;
+  },
+
+  // Create box plot data
+  createBoxPlotData(temperatures) {
+    const sorted = [...temperatures].sort((a, b) => a - b);
+    return {
+      min: Math.min(...temperatures),
+      q1: this.calculatePercentile(sorted, 25),
+      median: this.calculatePercentile(sorted, 50),
+      q3: this.calculatePercentile(sorted, 75),
+      max: Math.max(...temperatures),
+      outliers: this.findOutliers(temperatures, 
+        temperatures.reduce((a, b) => a + b, 0) / temperatures.length,
+        Math.sqrt(temperatures.reduce((a, b) => a + Math.pow(b - temperatures.reduce((a, b) => a + b, 0) / temperatures.length, 2), 0) / temperatures.length)
+      )
+    };
+  },
+
+  // Create scatter plot data
+  createScatterData(windSpeeds, precipitations) {
+    return windSpeeds.map((wind, i) => ({
+      windSpeed: wind,
+      precipitation: precipitations[i],
+      correlation: this.calculateCorrelation(windSpeeds, precipitations)
+    }));
+  },
+
+  // Create time series data
+  createTimeSeriesData(sameDateData) {
+    return sameDateData.map(d => ({
+      year: d.year,
+      temperature: d.temperature,
+      precipitation: d.precipitation,
+      windSpeed: d.windSpeed
+    })).sort((a, b) => a.year - b.year);
+  },
+
+  // Calculate correlation coefficient
+  calculateCorrelation(x, y) {
+    const n = x.length;
+    const sumX = x.reduce((a, b) => a + b, 0);
+    const sumY = y.reduce((a, b) => a + b, 0);
+    const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+    const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+    const sumYY = y.reduce((sum, yi) => sum + yi * yi, 0);
+    
+    return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+  },
+
+  // Calculate percentile
+  calculatePercentile(sorted, percentile) {
+    const index = (percentile / 100) * (sorted.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    const weight = index % 1;
+    
+    if (upper >= sorted.length) return sorted[sorted.length - 1];
+    return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+  },
+
+  // Find outliers using IQR method
+  findOutliers(values, mean, stdDev) {
+    const sorted = [...values].sort((a, b) => a - b);
+    const q1 = this.calculatePercentile(sorted, 25);
+    const q3 = this.calculatePercentile(sorted, 75);
+    const iqr = q3 - q1;
+    const lowerBound = q1 - 1.5 * iqr;
+    const upperBound = q3 + 1.5 * iqr;
+    
+    return values.filter(v => v < lowerBound || v > upperBound);
+  },
+
+  // Calculate rain distribution
+  calculateRainDistribution(precipitations) {
+    const ranges = [
+      { min: 0, max: 0.1, label: 'No Rain' },
+      { min: 0.1, max: 1, label: 'Light Rain' },
+      { min: 1, max: 5, label: 'Moderate Rain' },
+      { min: 5, max: 10, label: 'Heavy Rain' },
+      { min: 10, max: Infinity, label: 'Extreme Rain' }
+    ];
+    
+    return ranges.map(range => ({
+      label: range.label,
+      count: precipitations.filter(p => p >= range.min && p < range.max).length,
+      percentage: Math.round((precipitations.filter(p => p >= range.min && p < range.max).length / precipitations.length) * 100)
+    }));
+  },
+
+  // PARADE-SPECIFIC ANALYSIS FOR NASA SPACE APPS CHALLENGE
+  calculateParadeSpecificAnalysis(historicalData, eventDate, eventType) {
+    const rawData = historicalData.rawData;
+    const eventMonth = eventDate.getMonth() + 1;
+    const eventDay = eventDate.getDate();
+    
+    // Filter data for same date over years
+    const sameDateData = rawData.filter(d => 
+      d.month === eventMonth && d.day === eventDay
+    );
+    
+    if (sameDateData.length < 3) {
+      return {
+        hourlyRisk: null,
+        crowdSafetyScore: null,
+        visibilityScore: null,
+        equipmentRisk: null,
+        traditionalParadeDays: null,
+        paradeRecommendations: null
+      };
+    }
+
+    // Hourly risk analysis (parades typically 10:00-16:00)
+    const hourlyRisk = this.calculateHourlyParadeRisk(sameDateData);
+    
+    // Crowd safety analysis
+    const crowdSafetyScore = this.evaluateCrowdSafety(sameDateData);
+    
+    // Visibility analysis
+    const visibilityScore = this.calculateVisibilityScore(sameDateData);
+    
+    // Equipment protection risk
+    const equipmentRisk = this.assessEquipmentRisk(sameDateData);
+    
+    // Traditional parade days analysis
+    const traditionalParadeDays = this.analyzeTraditionalParadeDays(rawData, eventMonth);
+    
+    // Parade-specific recommendations
+    const paradeRecommendations = this.generateParadeRecommendations(
+      hourlyRisk, crowdSafetyScore, visibilityScore, equipmentRisk
+    );
+    
+    return {
+      hourlyRisk,
+      crowdSafetyScore,
+      visibilityScore,
+      equipmentRisk,
+      traditionalParadeDays,
+      paradeRecommendations
+    };
+  },
+
+  // Calculate hourly risk for parade times (10:00-16:00)
+  calculateHourlyParadeRisk(sameDateData) {
+    const paradeHours = [10, 11, 12, 13, 14, 15, 16];
+    const hourlyRisks = {};
+    
+    paradeHours.forEach(hour => {
+      const hourData = sameDateData.filter(d => d.hour === hour);
+      if (hourData.length > 0) {
+        const avgTemp = hourData.reduce((sum, d) => sum + d.temperature, 0) / hourData.length;
+        const avgPrecip = hourData.reduce((sum, d) => sum + d.precipitation, 0) / hourData.length;
+        const avgWind = hourData.reduce((sum, d) => sum + d.windSpeed, 0) / hourData.length;
+        
+        // Calculate risk score for this hour
+        let riskScore = 0;
+        if (avgPrecip > 0.5) riskScore += 40; // High rain risk
+        if (avgWind > 25) riskScore += 30; // High wind risk
+        if (avgTemp < 10 || avgTemp > 35) riskScore += 20; // Temperature risk
+        
+        hourlyRisks[hour] = {
+          riskScore: Math.min(100, riskScore),
+          temperature: Math.round(avgTemp * 10) / 10,
+          precipitation: Math.round(avgPrecip * 10) / 10,
+          windSpeed: Math.round(avgWind * 10) / 10,
+          recommendation: riskScore < 30 ? 'Ideal' : riskScore < 60 ? 'Acceptable' : 'Risky'
+        };
+      }
+    });
+    
+    return hourlyRisks;
+  },
+
+  // Evaluate crowd safety for parade
+  evaluateCrowdSafety(sameDateData) {
+    const avgTemp = sameDateData.reduce((sum, d) => sum + d.temperature, 0) / sameDateData.length;
+    const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
+    const avgWind = sameDateData.reduce((sum, d) => sum + d.windSpeed, 0) / sameDateData.length;
+    
+    let safetyScore = 100;
+    
+    // Temperature safety (18-28°C ideal)
+    if (avgTemp < 5 || avgTemp > 40) safetyScore -= 50;
+    else if (avgTemp < 10 || avgTemp > 35) safetyScore -= 30;
+    else if (avgTemp < 15 || avgTemp > 30) safetyScore -= 15;
+    
+    // Humidity safety (30-70% ideal)
+    if (avgHumidity > 90 || avgHumidity < 20) safetyScore -= 20;
+    else if (avgHumidity > 80 || avgHumidity < 30) safetyScore -= 10;
+    
+    // Wind safety (under 30 km/h ideal)
+    if (avgWind > 50) safetyScore -= 40;
+    else if (avgWind > 30) safetyScore -= 20;
+    else if (avgWind > 20) safetyScore -= 10;
+    
+    return {
+      score: Math.max(0, safetyScore),
+      level: safetyScore >= 80 ? 'Excellent' : safetyScore >= 60 ? 'Good' : safetyScore >= 40 ? 'Fair' : 'Poor',
+      factors: {
+        temperature: avgTemp,
+        humidity: Math.round(avgHumidity),
+        windSpeed: Math.round(avgWind * 10) / 10
+      }
+    };
+  },
+
+  // Calculate visibility score
+  calculateVisibilityScore(sameDateData) {
+    const avgHumidity = sameDateData.reduce((sum, d) => sum + (d.humidity || 50), 0) / sameDateData.length;
+    const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
+    const avgWind = sameDateData.reduce((sum, d) => sum + d.windSpeed, 0) / sameDateData.length;
+    
+    let visibilityScore = 100;
+    
+    // Humidity affects visibility
+    if (avgHumidity > 90) visibilityScore -= 30;
+    else if (avgHumidity > 80) visibilityScore -= 15;
+    
+    // Precipitation affects visibility
+    if (avgPrecip > 5) visibilityScore -= 40;
+    else if (avgPrecip > 2) visibilityScore -= 20;
+    else if (avgPrecip > 0.5) visibilityScore -= 10;
+    
+    // Wind can improve visibility but too much is bad
+    if (avgWind > 40) visibilityScore -= 20;
+    else if (avgWind < 5) visibilityScore -= 10; // Stagnant air
+    
+    return {
+      score: Math.max(0, visibilityScore),
+      level: visibilityScore >= 80 ? 'Excellent' : visibilityScore >= 60 ? 'Good' : visibilityScore >= 40 ? 'Fair' : 'Poor',
+      factors: {
+        humidity: Math.round(avgHumidity),
+        precipitation: Math.round(avgPrecip * 10) / 10,
+        windSpeed: Math.round(avgWind * 10) / 10
+      }
+    };
+  },
+
+  // Assess equipment protection risk
+  assessEquipmentRisk(sameDateData) {
+    const avgPrecip = sameDateData.reduce((sum, d) => sum + d.precipitation, 0) / sameDateData.length;
+    const avgWind = sameDateData.reduce((sum, d) => sum + d.windSpeed, 0) / sameDateData.length;
+    const maxPrecip = Math.max(...sameDateData.map(d => d.precipitation));
+    const maxWind = Math.max(...sameDateData.map(d => d.windSpeed));
+    
+    let equipmentRisk = 0;
+    
+    // Rain damage risk
+    if (maxPrecip > 10) equipmentRisk += 50;
+    else if (maxPrecip > 5) equipmentRisk += 30;
+    else if (avgPrecip > 2) equipmentRisk += 20;
+    else if (avgPrecip > 0.5) equipmentRisk += 10;
+    
+    // Wind damage risk
+    if (maxWind > 60) equipmentRisk += 40;
+    else if (maxWind > 40) equipmentRisk += 25;
+    else if (avgWind > 25) equipmentRisk += 15;
+    else if (avgWind > 15) equipmentRisk += 5;
+    
+    return {
+      riskScore: Math.min(100, equipmentRisk),
+      level: equipmentRisk < 20 ? 'Low' : equipmentRisk < 50 ? 'Moderate' : equipmentRisk < 80 ? 'High' : 'Extreme',
+      recommendations: this.getEquipmentRecommendations(equipmentRisk, avgPrecip, avgWind),
+      factors: {
+        averagePrecipitation: Math.round(avgPrecip * 10) / 10,
+        maxPrecipitation: Math.round(maxPrecip * 10) / 10,
+        averageWindSpeed: Math.round(avgWind * 10) / 10,
+        maxWindSpeed: Math.round(maxWind * 10) / 10
+      }
+    };
+  },
+
+  // Get equipment protection recommendations
+  getEquipmentRecommendations(riskScore, avgPrecip, avgWind) {
+    const recommendations = [];
+    
+    if (avgPrecip > 1) {
+      recommendations.push('Waterproof covers for all equipment');
+      recommendations.push('Elevated platforms for electronics');
+    }
+    
+    if (avgWind > 20) {
+      recommendations.push('Secure all loose equipment');
+      recommendations.push('Use weighted bases for stands');
+    }
+    
+    if (riskScore > 50) {
+      recommendations.push('Backup equipment on standby');
+      recommendations.push('Indoor backup venue recommended');
+    }
+    
+    if (avgPrecip > 2 || avgWind > 30) {
+      recommendations.push('Professional weather monitoring');
+      recommendations.push('Emergency evacuation plan');
+    }
+    
+    return recommendations;
+  },
+
+  // Analyze traditional parade days
+  analyzeTraditionalParadeDays(rawData, month) {
+    const traditionalDays = {
+      1: [{ name: "New Year's Day", day: 1 }],
+      2: [{ name: "Presidents' Day", day: 15 }], // Third Monday
+      3: [{ name: "St. Patrick's Day", day: 17 }],
+      4: [{ name: "Easter Parade", day: null }], // Variable
+      5: [{ name: "Memorial Day", day: 31 }], // Last Monday
+      6: [{ name: "Flag Day", day: 14 }],
+      7: [
+        { name: "Independence Day", day: 4 },
+        { name: "Bastille Day", day: 14 }
+      ],
+      9: [{ name: "Labor Day", day: 1 }], // First Monday
+      10: [{ name: "Columbus Day", day: 12 }],
+      11: [
+        { name: "Veterans Day", day: 11 },
+        { name: "Thanksgiving Parade", day: null } // Fourth Thursday
+      ],
+      12: [
+        { name: "Christmas Parade", day: 25 },
+        { name: "New Year's Eve", day: 31 }
+      ]
+    };
+    
+    const monthDays = traditionalDays[month] || [];
+    const analysis = {};
+    
+    monthDays.forEach(day => {
+      if (day.day) {
+        const dayData = rawData.filter(d => d.month === month && d.day === day.day);
+        if (dayData.length > 0) {
+          const avgTemp = dayData.reduce((sum, d) => sum + d.temperature, 0) / dayData.length;
+          const avgPrecip = dayData.reduce((sum, d) => sum + d.precipitation, 0) / dayData.length;
+          const rainDays = dayData.filter(d => d.precipitation > 0.5).length;
+          
+          analysis[day.name] = {
+            averageTemperature: Math.round(avgTemp * 10) / 10,
+            averagePrecipitation: Math.round(avgPrecip * 10) / 10,
+            rainProbability: Math.round((rainDays / dayData.length) * 100),
+            sampleSize: dayData.length,
+            recommendation: avgPrecip < 1 && avgTemp > 10 && avgTemp < 30 ? 'Ideal for parades' : 'Consider alternatives'
+          };
+        }
+      }
+    });
+    
+    return analysis;
+  },
+
+  // Generate parade-specific recommendations
+  generateParadeRecommendations(hourlyRisk, crowdSafety, visibility, equipment) {
+    const recommendations = [];
+    
+    // Time recommendations
+    if (hourlyRisk) {
+      const bestHours = Object.entries(hourlyRisk)
+        .filter(([hour, data]) => data.riskScore < 30)
+        .map(([hour]) => hour);
+      
+      if (bestHours.length > 0) {
+        recommendations.push(`Best parade times: ${bestHours.join(', ')}`);
+      }
+    }
+    
+    // Crowd safety recommendations
+    if (crowdSafety && crowdSafety.level !== 'Excellent') {
+      if (crowdSafety.factors.temperature < 10) {
+        recommendations.push('Provide heating stations for crowd');
+      } else if (crowdSafety.factors.temperature > 30) {
+        recommendations.push('Provide shade and cooling stations');
+      }
+      
+      if (crowdSafety.factors.windSpeed > 25) {
+        recommendations.push('Secure crowd barriers and signage');
+      }
+    }
+    
+    // Visibility recommendations
+    if (visibility && visibility.level !== 'Excellent') {
+      recommendations.push('Use bright colors and high-visibility materials');
+      recommendations.push('Consider indoor backup for key moments');
+    }
+    
+    // Equipment recommendations
+    if (equipment && equipment.recommendations) {
+      recommendations.push(...equipment.recommendations);
+    }
+    
+    return recommendations;
+  }
+
     const data = historicalData.rawData;
     const eventMonth = eventDate.getMonth() + 1;
     const eventDay = eventDate.getDate();
