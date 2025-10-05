@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, AlertTriangle, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
 import { useWeather } from '../context/WeatherContext';
+import StatisticalAnalysis from './StatisticalAnalysis';
 
 // Event types and critical factors
 const eventTypes = {
@@ -142,6 +143,8 @@ const EventPlanner = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showRiskAnalysis, setShowRiskAnalysis] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showStatisticalAnalysis, setShowStatisticalAnalysis] = useState(false);
+  const [statisticalData, setStatisticalData] = useState(null);
 
   const handleEventSelect = (eventType) => {
     setSelectedEvent(eventType);
@@ -154,6 +157,40 @@ const EventPlanner = () => {
       setTimeout(() => {
         setIsAnalyzing(false);
       }, 2000);
+    }
+  };
+
+  const handleStatisticalAnalysis = async () => {
+    if (!selectedLocation || !selectedDate || !selectedEvent) return;
+    
+    setShowStatisticalAnalysis(true);
+    setIsAnalyzing(true);
+    
+    try {
+      // Import weatherService dynamically to avoid circular imports
+      const { weatherService } = await import('../services/weatherService');
+      
+      // Get historical data for statistical analysis
+      const historicalData = await weatherService.getHistoricalWeather(
+        selectedLocation.latitude,
+        selectedLocation.longitude,
+        selectedDate,
+        20, // 20 years of data
+        7   // 7-day window
+      );
+      
+      // Calculate advanced statistics
+      const stats = weatherService.calculateAdvancedStatistics(
+        historicalData,
+        selectedDate,
+        selectedEvent
+      );
+      
+      setStatisticalData(stats);
+    } catch (error) {
+      console.error('Error calculating statistical analysis:', error);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -324,21 +361,42 @@ const EventPlanner = () => {
                 ))}
               </div>
 
-              {/* Confidence Level */}
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm">Prediction Confidence</span>
-                  <span className="text-white font-semibold">
-                    {calculateEventRiskScore(weatherData, selectedEvent).confidence}%
-                  </span>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
+                      {/* Confidence Level */}
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400 text-sm">Prediction Confidence</span>
+                          <span className="text-white font-semibold">
+                            {calculateEventRiskScore(weatherData, selectedEvent).confidence}%
+                          </span>
+                        </div>
+                      </div>
 
-export default EventPlanner;
+                      {/* Statistical Analysis Button */}
+                      <div className="mt-6 pt-6 border-t border-gray-700">
+                        <button
+                          onClick={handleStatisticalAnalysis}
+                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2"
+                        >
+                          <BarChart3 className="w-5 h-5" />
+                          Advanced Statistical Analysis
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Statistical Analysis Section */}
+              {showStatisticalAnalysis && (
+                <div className="mt-8">
+                  <StatisticalAnalysis 
+                    statisticalData={statisticalData}
+                    eventType={selectedEvent}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        };
+        
+        export default EventPlanner;

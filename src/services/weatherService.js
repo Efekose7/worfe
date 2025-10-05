@@ -841,6 +841,471 @@ class WeatherService {
     return Math.sqrt(avgSquaredDiff);
   }
 
+  // Advanced Statistical Analysis for NASA Space Apps Challenge
+  calculateAdvancedStatistics(historicalData, eventDate, eventType) {
+    if (!historicalData || !historicalData.rawData || historicalData.rawData.length === 0) {
+      return null;
+    }
+
+    const data = historicalData.rawData;
+    const eventMonth = eventDate.getMonth() + 1;
+    const eventDay = eventDate.getDate();
+    
+    // Same date historical data (last 10 years)
+    const sameDateData = data.filter(d => 
+      d.month === eventMonth && d.day === eventDay
+    );
+
+    // Temperature analysis
+    const temperatures = sameDateData.map(d => d.temperature_2m);
+    const tempStats = this.calculateDetailedTemperatureStats(temperatures);
+    
+    // Precipitation analysis
+    const precipitations = sameDateData.map(d => d.precipitation);
+    const precipStats = this.calculatePrecipitationStats(precipitations);
+    
+    // Wind analysis
+    const windSpeeds = sameDateData.map(d => d.wind_speed_10m);
+    const windStats = this.calculateWindStats(windSpeeds);
+    
+    // Event-specific risk analysis
+    const eventRiskAnalysis = this.calculateEventSpecificRisk(
+      sameDateData, eventType, eventDate
+    );
+    
+    // Historical pattern analysis
+    const patternAnalysis = this.analyzeHistoricalPatterns(data, eventMonth, eventDay);
+    
+    // Confidence intervals (95%)
+    const confidenceIntervals = this.calculateAdvancedConfidenceIntervals(
+      tempStats, precipStats, windStats
+    );
+    
+    // Data visualization data
+    const visualizationData = this.prepareVisualizationData(
+      sameDateData, tempStats, precipStats, windStats
+    );
+
+    return {
+      temperature: tempStats,
+      precipitation: precipStats,
+      wind: windStats,
+      eventRisk: eventRiskAnalysis,
+      patterns: patternAnalysis,
+      confidence: confidenceIntervals,
+      visualization: visualizationData,
+      reliability: sameDateData.length >= 10 ? 'high' : 'moderate',
+      sampleSize: sameDateData.length,
+      dateRange: {
+        start: Math.min(...sameDateData.map(d => new Date(d.year, d.month-1, d.day))),
+        end: Math.max(...sameDateData.map(d => new Date(d.year, d.month-1, d.day)))
+      }
+    };
+  }
+
+  calculateDetailedTemperatureStats(temperatures) {
+    if (temperatures.length === 0) return null;
+    
+    const sorted = [...temperatures].sort((a, b) => a - b);
+    const mean = temperatures.reduce((a, b) => a + b, 0) / temperatures.length;
+    const stdDev = this.calculateStandardDeviation(temperatures);
+    
+    return {
+      mean: Math.round(mean * 10) / 10,
+      median: sorted[Math.floor(sorted.length / 2)],
+      min: Math.min(...temperatures),
+      max: Math.max(...temperatures),
+      q1: sorted[Math.floor(sorted.length * 0.25)],
+      q3: sorted[Math.floor(sorted.length * 0.75)],
+      stdDev: Math.round(stdDev * 10) / 10,
+      variance: Math.round(stdDev * stdDev * 10) / 10,
+      range: Math.max(...temperatures) - Math.min(...temperatures),
+      percentiles: {
+        p10: sorted[Math.floor(sorted.length * 0.1)],
+        p25: sorted[Math.floor(sorted.length * 0.25)],
+        p75: sorted[Math.floor(sorted.length * 0.75)],
+        p90: sorted[Math.floor(sorted.length * 0.9)]
+      }
+    };
+  }
+
+  calculatePrecipitationStats(precipitations) {
+    if (precipitations.length === 0) return null;
+    
+    const rainDays = precipitations.filter(p => p > 0.1).length;
+    const heavyRainDays = precipitations.filter(p => p > 5.0).length;
+    const totalRain = precipitations.reduce((a, b) => a + b, 0);
+    
+    return {
+      rainProbability: Math.round((rainDays / precipitations.length) * 100),
+      heavyRainProbability: Math.round((heavyRainDays / precipitations.length) * 100),
+      averageRainfall: Math.round((totalRain / precipitations.length) * 10) / 10,
+      totalRainfall: Math.round(totalRain * 10) / 10,
+      maxRainfall: Math.max(...precipitations),
+      dryDays: precipitations.length - rainDays,
+      rainDistribution: this.calculateRainDistribution(precipitations)
+    };
+  }
+
+  calculateWindStats(windSpeeds) {
+    if (windSpeeds.length === 0) return null;
+    
+    const sorted = [...windSpeeds].sort((a, b) => a - b);
+    const mean = windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length;
+    const stdDev = this.calculateStandardDeviation(windSpeeds);
+    
+    return {
+      mean: Math.round(mean * 10) / 10,
+      median: sorted[Math.floor(sorted.length / 2)],
+      max: Math.max(...windSpeeds),
+      stdDev: Math.round(stdDev * 10) / 10,
+      calmDays: windSpeeds.filter(w => w < 5).length,
+      windyDays: windSpeeds.filter(w => w > 20).length,
+      extremeWindDays: windSpeeds.filter(w => w > 40).length
+    };
+  }
+
+  calculateEventSpecificRisk(sameDateData, eventType, eventDate) {
+    const eventTypes = this.getEventTypes();
+    const event = eventTypes[eventType];
+    
+    if (!event) return null;
+    
+    let totalRiskScore = 0;
+    const riskFactors = [];
+    
+    // Temperature risk
+    const temperatures = sameDateData.map(d => d.temperature_2m);
+    const tempRisk = this.calculateTemperatureRisk(temperatures, event.criticalFactors.temp);
+    totalRiskScore += tempRisk.score * event.criticalFactors.temp.weight;
+    riskFactors.push({
+      factor: 'Temperature',
+      risk: tempRisk.score,
+      weight: event.criticalFactors.temp.weight,
+      details: tempRisk.details
+    });
+    
+    // Precipitation risk
+    const precipitations = sameDateData.map(d => d.precipitation);
+    const precipRisk = this.calculatePrecipitationRisk(precipitations, event.criticalFactors.rain);
+    totalRiskScore += precipRisk.score * event.criticalFactors.rain.weight;
+    riskFactors.push({
+      factor: 'Precipitation',
+      risk: precipRisk.score,
+      weight: event.criticalFactors.rain.weight,
+      details: precipRisk.details
+    });
+    
+    // Wind risk
+    const windSpeeds = sameDateData.map(d => d.wind_speed_10m);
+    const windRisk = this.calculateWindRisk(windSpeeds, event.criticalFactors.wind);
+    totalRiskScore += windRisk.score * event.criticalFactors.wind.weight;
+    riskFactors.push({
+      factor: 'Wind',
+      risk: windRisk.score,
+      weight: event.criticalFactors.wind.weight,
+      details: windRisk.details
+    });
+    
+    return {
+      totalRisk: Math.round(totalRiskScore),
+      riskLevel: totalRiskScore < 30 ? 'Low' : totalRiskScore < 60 ? 'Medium' : 'High',
+      confidence: this.calculateRiskConfidence(sameDateData.length),
+      factors: riskFactors,
+      recommendation: this.getRiskRecommendation(totalRiskScore)
+    };
+  }
+
+  calculateTemperatureRisk(temperatures, tempFactors) {
+    const [minTemp, maxTemp] = tempFactors.range;
+    const optimalTemp = (minTemp + maxTemp) / 2;
+    
+    const riskDays = temperatures.filter(temp => 
+      temp < minTemp || temp > maxTemp
+    ).length;
+    
+    const riskScore = (riskDays / temperatures.length) * 100;
+    
+    return {
+      score: Math.round(riskScore),
+      details: {
+        optimalRange: `${minTemp}°C - ${maxTemp}°C`,
+        riskDays: riskDays,
+        totalDays: temperatures.length,
+        averageTemp: Math.round((temperatures.reduce((a, b) => a + b, 0) / temperatures.length) * 10) / 10
+      }
+    };
+  }
+
+  calculatePrecipitationRisk(precipitations, rainFactors) {
+    const threshold = rainFactors.threshold;
+    const riskDays = precipitations.filter(precip => precip > threshold).length;
+    const riskScore = (riskDays / precipitations.length) * 100;
+    
+    return {
+      score: Math.round(riskScore),
+      details: {
+        threshold: `${threshold}mm`,
+        riskDays: riskDays,
+        totalDays: precipitations.length,
+        averageRainfall: Math.round((precipitations.reduce((a, b) => a + b, 0) / precipitations.length) * 10) / 10
+      }
+    };
+  }
+
+  calculateWindRisk(windSpeeds, windFactors) {
+    const threshold = windFactors.threshold;
+    const riskDays = windSpeeds.filter(wind => wind > threshold).length;
+    const riskScore = (riskDays / windSpeeds.length) * 100;
+    
+    return {
+      score: Math.round(riskScore),
+      details: {
+        threshold: `${threshold} km/h`,
+        riskDays: riskDays,
+        totalDays: windSpeeds.length,
+        averageWindSpeed: Math.round((windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length) * 10) / 10
+      }
+    };
+  }
+
+  calculateRiskConfidence(sampleSize) {
+    if (sampleSize >= 20) return 'High (95%)';
+    if (sampleSize >= 10) return 'Medium (85%)';
+    return 'Low (70%)';
+  }
+
+  getRiskRecommendation(riskScore) {
+    if (riskScore < 20) return 'Excellent conditions for your event!';
+    if (riskScore < 40) return 'Good conditions with minor risks.';
+    if (riskScore < 60) return 'Moderate risk. Consider backup plans.';
+    if (riskScore < 80) return 'High risk. Strongly consider alternatives.';
+    return 'Very high risk. Not recommended for outdoor events.';
+  }
+
+  analyzeHistoricalPatterns(data, month, day) {
+    // Analyze trends over the years
+    const yearlyData = {};
+    data.forEach(d => {
+      if (d.month === month && d.day === day) {
+        if (!yearlyData[d.year]) {
+          yearlyData[d.year] = [];
+        }
+        yearlyData[d.year].push(d);
+      }
+    });
+    
+    const years = Object.keys(yearlyData).sort();
+    const trends = {
+      temperature: this.calculateTrend(years.map(year => 
+        yearlyData[year].reduce((sum, d) => sum + d.temperature_2m, 0) / yearlyData[year].length
+      )),
+      precipitation: this.calculateTrend(years.map(year => 
+        yearlyData[year].reduce((sum, d) => sum + d.precipitation, 0) / yearlyData[year].length
+      )),
+      windSpeed: this.calculateTrend(years.map(year => 
+        yearlyData[year].reduce((sum, d) => sum + d.wind_speed_10m, 0) / yearlyData[year].length
+      ))
+    };
+    
+    return {
+      trends,
+      yearCount: years.length,
+      trendDirection: this.getTrendDirection(trends)
+    };
+  }
+
+  calculateTrend(values) {
+    if (values.length < 2) return { slope: 0, correlation: 0 };
+    
+    const n = values.length;
+    const x = Array.from({length: n}, (_, i) => i);
+    const sumX = x.reduce((a, b) => a + b, 0);
+    const sumY = values.reduce((a, b) => a + b, 0);
+    const sumXY = x.reduce((sum, xi, i) => sum + xi * values[i], 0);
+    const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+    const sumYY = values.reduce((sum, yi) => sum + yi * yi, 0);
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const correlation = (n * sumXY - sumX * sumY) / 
+      Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+    
+    return { slope: Math.round(slope * 1000) / 1000, correlation: Math.round(correlation * 1000) / 1000 };
+  }
+
+  getTrendDirection(trends) {
+    const significantTrends = Object.entries(trends).filter(([key, trend]) => 
+      Math.abs(trend.slope) > 0.1
+    );
+    
+    if (significantTrends.length === 0) return 'Stable';
+    
+    const warming = trends.temperature.slope > 0;
+    const wetter = trends.precipitation.slope > 0;
+    const windier = trends.windSpeed.slope > 0;
+    
+    return {
+      temperature: warming ? 'Warming' : 'Cooling',
+      precipitation: wetter ? 'Wetter' : 'Drier',
+      wind: windier ? 'Windier' : 'Calmer'
+    };
+  }
+
+  calculateAdvancedConfidenceIntervals(tempStats, precipStats, windStats) {
+    const z95 = 1.96; // 95% confidence interval
+    
+    return {
+      temperature: {
+        lower: Math.round((tempStats.mean - z95 * tempStats.stdDev) * 10) / 10,
+        upper: Math.round((tempStats.mean + z95 * tempStats.stdDev) * 10) / 10
+      },
+      precipitation: {
+        lower: Math.round((precipStats.averageRainfall - z95 * Math.sqrt(precipStats.averageRainfall)) * 10) / 10,
+        upper: Math.round((precipStats.averageRainfall + z95 * Math.sqrt(precipStats.averageRainfall)) * 10) / 10
+      },
+      windSpeed: {
+        lower: Math.round((windStats.mean - z95 * windStats.stdDev) * 10) / 10,
+        upper: Math.round((windStats.mean + z95 * windStats.stdDev) * 10) / 10
+      }
+    };
+  }
+
+  prepareVisualizationData(sameDateData, tempStats, precipStats, windStats) {
+    // Temperature distribution for histogram
+    const tempDistribution = this.createHistogramData(
+      sameDateData.map(d => d.temperature_2m), 
+      tempStats.min, 
+      tempStats.max, 
+      5
+    );
+    
+    // Precipitation distribution
+    const precipDistribution = this.createHistogramData(
+      sameDateData.map(d => d.precipitation), 
+      0, 
+      precipStats.max, 
+      5
+    );
+    
+    // Wind speed distribution
+    const windDistribution = this.createHistogramData(
+      sameDateData.map(d => d.wind_speed_10m), 
+      0, 
+      windStats.max, 
+      5
+    );
+    
+    // Box plot data
+    const boxPlotData = {
+      temperature: {
+        min: tempStats.min,
+        q1: tempStats.q1,
+        median: tempStats.median,
+        q3: tempStats.q3,
+        max: tempStats.max,
+        outliers: this.findOutliers(sameDateData.map(d => d.temperature_2m))
+      },
+      precipitation: {
+        min: 0,
+        q1: this.calculatePercentile(sameDateData.map(d => d.precipitation), 25),
+        median: this.calculatePercentile(sameDateData.map(d => d.precipitation), 50),
+        q3: this.calculatePercentile(sameDateData.map(d => d.precipitation), 75),
+        max: precipStats.max,
+        outliers: this.findOutliers(sameDateData.map(d => d.precipitation))
+      }
+    };
+    
+    // Correlation data for scatter plot
+    const correlationData = sameDateData.map(d => ({
+      temperature: d.temperature_2m,
+      precipitation: d.precipitation,
+      windSpeed: d.wind_speed_10m,
+      year: d.year
+    }));
+    
+    return {
+      temperatureHistogram: tempDistribution,
+      precipitationHistogram: precipDistribution,
+      windHistogram: windDistribution,
+      boxPlot: boxPlotData,
+      correlation: correlationData,
+      timeSeries: this.createTimeSeriesData(sameDateData)
+    };
+  }
+
+  createHistogramData(values, min, max, bins) {
+    const binSize = (max - min) / bins;
+    const histogram = Array(bins).fill(0).map((_, i) => ({
+      range: `${Math.round((min + i * binSize) * 10) / 10} - ${Math.round((min + (i + 1) * binSize) * 10) / 10}`,
+      count: 0,
+      percentage: 0
+    }));
+    
+    values.forEach(value => {
+      const binIndex = Math.min(Math.floor((value - min) / binSize), bins - 1);
+      histogram[binIndex].count++;
+    });
+    
+    const total = values.length;
+    histogram.forEach(bin => {
+      bin.percentage = Math.round((bin.count / total) * 100);
+    });
+    
+    return histogram;
+  }
+
+  findOutliers(values) {
+    const sorted = [...values].sort((a, b) => a - b);
+    const q1 = sorted[Math.floor(sorted.length * 0.25)];
+    const q3 = sorted[Math.floor(sorted.length * 0.75)];
+    const iqr = q3 - q1;
+    const lowerBound = q1 - 1.5 * iqr;
+    const upperBound = q3 + 1.5 * iqr;
+    
+    return values.filter(value => value < lowerBound || value > upperBound);
+  }
+
+  calculatePercentile(values, percentile) {
+    const sorted = [...values].sort((a, b) => a - b);
+    const index = Math.ceil((percentile / 100) * sorted.length) - 1;
+    return sorted[Math.max(0, index)];
+  }
+
+  createTimeSeriesData(data) {
+    return data.map(d => ({
+      date: new Date(d.year, d.month - 1, d.day),
+      temperature: d.temperature_2m,
+      precipitation: d.precipitation,
+      windSpeed: d.wind_speed_10m,
+      year: d.year
+    })).sort((a, b) => a.date - b.date);
+  }
+
+  calculateRainDistribution(precipitations) {
+    const distribution = {
+      noRain: 0,
+      lightRain: 0,
+      moderateRain: 0,
+      heavyRain: 0,
+      extremeRain: 0
+    };
+    
+    precipitations.forEach(precip => {
+      if (precip < 0.1) distribution.noRain++;
+      else if (precip < 2.5) distribution.lightRain++;
+      else if (precip < 10) distribution.moderateRain++;
+      else if (precip < 50) distribution.heavyRain++;
+      else distribution.extremeRain++;
+    });
+    
+    const total = precipitations.length;
+    Object.keys(distribution).forEach(key => {
+      distribution[key] = Math.round((distribution[key] / total) * 100);
+    });
+    
+    return distribution;
+  }
+
   // Geocoding service
   async searchLocation(query) {
     try {
