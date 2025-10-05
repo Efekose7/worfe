@@ -1,7 +1,8 @@
 {
   "name": "worfe",
   "version": "1.0.0",
-  "description": "Worfe - Historical Weather Analysis Dashboard",
+  "description": "Worfe - Event Weather Planning Dashboard",
+  "homepage": "https://efekose7.github.io/worfe",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
@@ -28,7 +29,9 @@
     "eject": "react-scripts eject",
     "server": "node server.js",
     "dev": "concurrently \"npm run start\" \"npm run server\"",
-    "api": "npm run build && npm run server"
+    "api": "npm run build && npm run server",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
