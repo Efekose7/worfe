@@ -196,6 +196,19 @@ export function WeatherProvider({ children }) {
               
               // Set loading to false after all data is fetched
               dispatch({ type: 'SET_LOADING', payload: false });
+              
+              // Auto-scroll to data section on mobile after data is loaded
+              setTimeout(() => {
+                if (window.innerWidth <= 768) { // Mobile check
+                  const dataSection = document.querySelector('[data-section="weather-data"]');
+                  if (dataSection) {
+                    dataSection.scrollIntoView({ 
+                      behavior: 'smooth', 
+                      block: 'start' 
+                    });
+                  }
+                }
+              }, 500); // Small delay to ensure DOM is updated
       
     } catch (error) {
       console.error('Error in fetchWeatherData:', error);

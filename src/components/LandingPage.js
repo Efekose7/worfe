@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Calendar, TrendingUp, Zap, ArrowRight, Github, ExternalLink } from 'lucide-react';
+import { Cloud, Calendar, TrendingUp, Zap, ArrowRight, Github } from 'lucide-react';
 
 const LandingPage = ({ onStartAnalysis }) => {
   const [scrollY, setScrollY] = useState(0);
@@ -70,10 +70,6 @@ const LandingPage = ({ onStartAnalysis }) => {
       {/* Hero Section */}
       <div className="relative container mx-auto px-4 pt-20 pb-32">
         <div className={`text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {/* NASA Space Apps Badge */}
-          <div className="inline-flex items-center gap-2 bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-full px-4 sm:px-6 py-2 mb-6 sm:mb-8">
-            <span className="text-blue-300 font-semibold text-sm sm:text-base">🚀 NASA Space Apps Challenge 2025</span>
-          </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight px-4">
             Will It Rain On<br />Your Parade?
@@ -370,16 +366,12 @@ const LandingPage = ({ onStartAnalysis }) => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-gray-400 text-sm sm:text-base text-center md:text-left">
-              © 2025 Worfe Weather Dashboard - NASA Space Apps Challenge
+              © 2025 Worfe Weather Dashboard
             </div>
             <div className="flex gap-4 sm:gap-6">
               <a href="https://github.com/Efekose7/worfe" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm sm:text-base">
                 <Github className="w-4 h-4 sm:w-5 sm:h-5" />
                 GitHub
-              </a>
-              <a href="https://efekose7.github.io/worfe" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm sm:text-base">
-                <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
-                Live Demo
               </a>
             </div>
           </div>

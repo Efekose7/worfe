@@ -2,7 +2,6 @@ import React from 'react';
 import { useWeather } from '../context/WeatherContext';
 import ProbabilityCards from './ProbabilityCards';
 import WeatherCharts from './WeatherCharts';
-import LocationInfo from './LocationInfo';
 import DataProvenance from './DataProvenance';
 import { AlertCircle } from 'lucide-react';
 
@@ -89,10 +88,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Location and Date Info */}
-      <LocationInfo />
-
+    <div className="space-y-6" data-section="weather-data">
       {/* Probability Cards */}
       <ProbabilityCards />
 
