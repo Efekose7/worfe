@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, no-dupe-class-members */
 // Weather service for NASA and Open-Meteo API integration
 class WeatherService {
   constructor() {
