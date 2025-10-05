@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/worfe/static/css/main.5a5aeb12.css",
-    "main.js": "/worfe/static/js/main.3dce352c.js",
-    "index.html": "/worfe/index.html",
-    "main.5a5aeb12.css.map": "/worfe/static/css/main.5a5aeb12.css.map",
-    "main.3dce352c.js.map": "/worfe/static/js/main.3dce352c.js.map"
+    "main.css": "./static/css/main.c72bb8ce.css",
+    "main.js": "./static/js/main.8da43371.js",
+    "index.html": "./index.html",
+    "main.c72bb8ce.css.map": "./static/css/main.c72bb8ce.css.map",
+    "main.8da43371.js.map": "./static/js/main.8da43371.js.map"
   },
   "entrypoints": [
-    "static/css/main.5a5aeb12.css",
-    "static/js/main.3dce352c.js"
+    "static/css/main.c72bb8ce.css",
+    "static/js/main.8da43371.js"
   ]
 }
